@@ -36,7 +36,15 @@ from dataset_generator.generators.response_strategies import (
     ResponseStrategy,
     ResponseStrategyFactory,
 )
+from dataset_generator.generators.session_batch import build_session_simulator, generate_sessions
+from dataset_generator.generators.session_report import (
+    SessionReport,
+    build_session_report,
+    render_session_report,
+)
+from dataset_generator.generators.session_simulator import SessionSimulator
 from dataset_generator.generators.student_profile_generator import generate_students
+from dataset_generator.generators.transition_engine import TransitionEngine
 
 __all__ = [
     "BaseProfile",
@@ -60,11 +68,18 @@ __all__ = [
     "ResponseStrategy",
     "ResponseStrategyFactory",
     "ResponseValidationReport",
+    "SessionReport",
+    "SessionSimulator",
+    "TransitionEngine",
     "build_behaviour_report",
     "build_prompt_report",
     "build_response_report",
+    "build_session_report",
+    "build_session_simulator",
+    "generate_sessions",
     "generate_students",
     "render_behaviour_report",
     "render_report",
     "render_response_report",
+    "render_session_report",
 ]

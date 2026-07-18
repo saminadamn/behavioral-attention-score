@@ -20,6 +20,7 @@ from dataset_generator.config._validation import validate_probability_mapping
 from dataset_generator.config.attention_state import (
     BEHAVIOURAL_FEATURES,
     AttentionState,
+    combine_transition_matrix,
     reachability_violations,
 )
 from dataset_generator.config.behaviour_generation import (
@@ -34,6 +35,10 @@ from dataset_generator.config.prompt_generation import (
 from dataset_generator.config.response_generation import (
     ResponseGenerationConfig,
     default_response_generation_config,
+)
+from dataset_generator.config.session_simulation import (
+    SessionSimulationConfig,
+    default_session_simulation_config,
 )
 
 _DISTRIBUTION_REQUIRED_PARAMS: dict[str, set[str]] = {
@@ -328,6 +333,9 @@ class GeneratorConfig(BaseModel):
     behaviour_generation: BehaviourGenerationConfig = Field(
         default_factory=default_behaviour_generation_config
     )
+    session_simulation: SessionSimulationConfig = Field(
+        default_factory=default_session_simulation_config
+    )
     output: OutputConfig = Field(default_factory=OutputConfig)
     version_metadata: VersionMetadata = Field(default_factory=VersionMetadata)
     experiment: ExperimentMetadata = Field(default_factory=ExperimentMetadata)
@@ -364,28 +372,18 @@ class GeneratorConfig(BaseModel):
     def _check_profile_effective_matrix_reachable(
         self, profile_key: str, profile: StudentProfileConfig
     ) -> None:
-        """Apply `profile.transition_modifiers` to the base matrix and verify
-        the resulting effective matrix (after clipping negatives and
-        renormalizing rows) still leaves every state reachable — a profile
-        should never be able to make a state permanently unreachable.
+        """Verify the profile's effective transition matrix (base + modifiers,
+        clipped and renormalized by `combine_transition_matrix`) still leaves
+        every state reachable — a profile should never be able to make a
+        state permanently unreachable.
         """
 
-        effective: dict[AttentionState, dict[AttentionState, float]] = {
-            state: dict(self.transition_matrix.matrix[state]) for state in AttentionState
-        }
-        for from_state, deltas in profile.transition_modifiers.items():
-            for to_state, delta in deltas.items():
-                effective[from_state][to_state] += delta
-
-        for from_state, row in effective.items():
-            clipped = {state: max(0.0, value) for state, value in row.items()}
-            total = sum(clipped.values())
-            if total <= 0:
-                raise ValueError(
-                    f"profile {profile_key!r} produces a degenerate transition row "
-                    f"from {from_state.value} (all probabilities <= 0 after modifiers)"
-                )
-            effective[from_state] = {state: value / total for state, value in clipped.items()}
+        try:
+            effective = combine_transition_matrix(
+                self.transition_matrix.matrix, profile.transition_modifiers
+            )
+        except ValueError as exc:
+            raise ValueError(f"profile {profile_key!r}: {exc}") from exc
 
         violations = reachability_violations(effective)
         if violations:

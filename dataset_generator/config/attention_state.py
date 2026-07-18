@@ -39,6 +39,42 @@ BEHAVIOURAL_FEATURES: tuple[str, ...] = (
 )
 
 
+def combine_transition_matrix(
+    base: dict[AttentionState, dict[AttentionState, float]],
+    modifiers: dict[AttentionState, dict[AttentionState, float]],
+) -> dict[AttentionState, dict[AttentionState, float]]:
+    """Apply additive `modifiers` to `base`, clip negatives to 0, renormalize each row.
+
+    Shared by `GeneratorConfig`'s own validation (checking a profile's
+    effective matrix stays reachable) and `TransitionEngine` (Module 6),
+    which needs the identical computation at sampling time — extracted here,
+    rather than duplicated in both places, specifically so those two call
+    sites can never drift apart.
+
+    Raises `ValueError` if any row's probabilities are all <= 0 after
+    modifiers are applied (a degenerate row has nothing left to renormalize).
+    """
+
+    effective: dict[AttentionState, dict[AttentionState, float]] = {
+        state: dict(base[state]) for state in AttentionState
+    }
+    for from_state, deltas in modifiers.items():
+        for to_state, delta in deltas.items():
+            effective[from_state][to_state] += delta
+
+    for from_state, row in effective.items():
+        clipped = {state: max(0.0, value) for state, value in row.items()}
+        total = sum(clipped.values())
+        if total <= 0:
+            raise ValueError(
+                f"degenerate transition row from {from_state.value} after modifiers "
+                "(all probabilities <= 0)"
+            )
+        effective[from_state] = {state: value / total for state, value in clipped.items()}
+
+    return effective
+
+
 def reachability_violations(
     matrix: dict[AttentionState, dict[AttentionState, float]], tolerance: float = 1e-9
 ) -> list[str]:
