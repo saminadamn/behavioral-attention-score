@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bas-dataset-generator"
+version = "0.1.0"
+description = "Synthetic classroom-interaction dataset generator for the Behavioural Attention Score (BAS) research project. Research use only; not a diagnostic tool."
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
