@@ -118,7 +118,7 @@ class SessionSimulator:
             interactions.append(
                 InteractionRecord(
                     interaction_number=interaction_number,
-                    prompt_id=prompt.prompt_id,
+                    prompt=prompt,
                     response=response,
                     behaviour=behaviour,
                 )

@@ -6,6 +6,7 @@ from dataset_generator.utils.rng import (
     student_local_rng,
     student_local_seed,
 )
+from dataset_generator.utils.git_info import detect_git_commit
 from dataset_generator.utils.heuristic_nlp import (
     concept_coverage,
     find_hesitation_markers,
@@ -29,6 +30,7 @@ __all__ = [
     "build_rng_streams",
     "concept_coverage",
     "count_syllables",
+    "detect_git_commit",
     "estimate_reading_time_seconds",
     "find_hesitation_markers",
     "flesch_kincaid_grade",

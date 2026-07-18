@@ -124,7 +124,7 @@ class ResponseGenerator:
         )
 
         response = Response(
-            response_id=f"{student.student_id}_{session_context.interaction_number:04d}",
+            response_id=self._build_response_id(student.student_id, session_context),
             student_id=student.student_id,
             prompt_id=analysis.prompt_id,
             response_text=text,
@@ -161,6 +161,20 @@ class ResponseGenerator:
             raise RuntimeError(f"generated response {response.response_id} failed validation: {issues}")
 
         return response
+
+    @staticmethod
+    def _build_response_id(student_id: str, session_context: SessionContext) -> str:
+        """A response ID unique across every session, not just within one.
+
+        Interaction numbers restart at 1 in every session, so
+        `student_id + interaction_number` alone collides across a student's
+        multiple sessions — this only surfaced once Module 7 aggregated
+        records across many sessions per student. Including `session_id`
+        fixes it structurally rather than papering over it with a global
+        counter.
+        """
+
+        return f"{student_id}_{session_context.session_id}_{session_context.interaction_number:04d}"
 
     def _sample_text(
         self,

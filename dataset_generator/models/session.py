@@ -22,18 +22,31 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from dataset_generator.config.attention_state import AttentionState
 from dataset_generator.models.behaviour import BehaviourRecord
+from dataset_generator.models.prompt import Prompt
 from dataset_generator.models.response import Response
 
 
 class InteractionRecord(BaseModel):
-    """One interaction's full bundle: the prompt it used, and what it produced."""
+    """One interaction's full bundle: the prompt it used, and what it produced.
+
+    Stores the complete `Prompt` (not just `prompt_id`) so that Module 7's
+    `DatasetBuilder` can flatten `prompt_text`/`keywords`/`learning_objective`/
+    etc. into a dataset row without ever regenerating a prompt — that
+    information exists nowhere else once a session has been simulated.
+    """
 
     model_config = ConfigDict(frozen=True)
 
     interaction_number: int = Field(gt=0)
-    prompt_id: str
+    prompt: Prompt
     response: Response
     behaviour: BehaviourRecord
+
+    @property
+    def prompt_id(self) -> str:
+        """Convenience accessor — equivalent to `prompt.prompt_id`."""
+
+        return self.prompt.prompt_id
 
 
 class TransitionEvent(BaseModel):
