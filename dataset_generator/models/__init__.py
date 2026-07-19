@@ -24,11 +24,23 @@ from dataset_generator.models.session import (
 )
 from dataset_generator.models.session_context import SessionContext
 from dataset_generator.models.student import Student
+from dataset_generator.models.training import (
+    CalibrationResult,
+    ClassificationMetrics,
+    FeatureImportanceEntry,
+    FeatureImportanceReport,
+    PredictionResult,
+    ReliabilityBin,
+    TrainingArtifact,
+    TrainingMetadata,
+)
 
 __all__ = [
     "BehaviourFeatures",
     "BehaviourMetadata",
     "BehaviourRecord",
+    "CalibrationResult",
+    "ClassificationMetrics",
     "DatasetArtifact",
     "DatasetManifest",
     "DatasetMetadata",
@@ -38,10 +50,14 @@ __all__ = [
     "FeatureCategory",
     "FeatureDefinition",
     "FeatureDistributionSummary",
+    "FeatureImportanceEntry",
+    "FeatureImportanceReport",
     "InteractionRecord",
     "InterventionEvent",
+    "PredictionResult",
     "Prompt",
     "PromptMetadata",
+    "ReliabilityBin",
     "Response",
     "ResponseFeatures",
     "ResponseMetadata",
@@ -50,5 +66,7 @@ __all__ = [
     "SessionStatistics",
     "SessionSummary",
     "Student",
+    "TrainingArtifact",
+    "TrainingMetadata",
     "TransitionEvent",
 ]
