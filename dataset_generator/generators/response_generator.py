@@ -103,7 +103,17 @@ class ResponseGenerator:
         # similarity over the whole prompt sentence — see response_templates.py's
         # module docstring for why the latter drives similarity toward zero
         # regardless of how on-topic a response actually is.
-        semantic_similarity = concept_coverage(text, [keyword, analysis.topic_display])
+        #
+        # Raw coverage is near-constant per state by template design
+        # (Focused always covers both concepts -> exactly 1.0; Impulsive
+        # always covers exactly one -> exactly 0.5), which taught a
+        # downstream classifier a trivial threshold instead of a genuine
+        # pattern. Adding small per-state Gaussian noise gives states
+        # realistic, overlapping distributions instead of exact constants,
+        # without changing what the template design is actually expressing.
+        raw_semantic_similarity = concept_coverage(text, [keyword, analysis.topic_display])
+        similarity_noise = self._rng.normal(0.0, self._settings.semantic_similarity_noise_std[attention_state])
+        semantic_similarity = min(1.0, max(0.0, raw_semantic_similarity + similarity_noise))
 
         topic_shift = (
             1.0 - token_jaccard_similarity(session_context.previous_response_text, text)
@@ -112,7 +122,9 @@ class ResponseGenerator:
         )
 
         coherence = coherence_score(lexical_diversity, rep_ratio)
-        confidence = confidence_score(strategy, hesitation_markers, self._settings)
+        raw_confidence = confidence_score(strategy, hesitation_markers, self._settings)
+        confidence_noise = self._rng.normal(0.0, self._settings.confidence_noise_std[attention_state])
+        confidence = min(1.0, max(0.0, raw_confidence + confidence_noise))
         target_length = strategy.target_length(analysis.expected_response_length)
         engagement = engagement_proxy(
             response_length,

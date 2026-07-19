@@ -51,6 +51,28 @@ class ResponseGenerationConfig(BaseModel):
     )
     hesitation_confidence_penalty: float = Field(ge=0.0, default=0.15)
 
+    # Per-state Gaussian noise added to otherwise near-constant evidence
+    # (semantic_similarity, confidence) so attention states have realistic,
+    # overlapping distributions rather than exactly-constant per-state
+    # values (e.g. Focused semantic_similarity was exactly 1.0 for every
+    # response, Impulsive exactly 0.5) — a downstream classifier trained on
+    # exact constants learns a trivial threshold rather than a genuine
+    # pattern. Values are clipped back into their valid range after noise.
+    semantic_similarity_noise_std: dict[AttentionState, float] = Field(
+        default_factory=lambda: {
+            AttentionState.FOCUSED: 0.05,
+            AttentionState.DISTRACTED: 0.05,
+            AttentionState.IMPULSIVE: 0.08,
+        }
+    )
+    confidence_noise_std: dict[AttentionState, float] = Field(
+        default_factory=lambda: {
+            AttentionState.FOCUSED: 0.05,
+            AttentionState.DISTRACTED: 0.05,
+            AttentionState.IMPULSIVE: 0.05,
+        }
+    )
+
     duplicate_retry_limit: int = Field(gt=0, default=10)
     max_response_words: int = Field(gt=0, default=200)
 
@@ -70,6 +92,15 @@ class ResponseGenerationConfig(BaseModel):
         for state, value in self.confidence_by_attention_state.items():
             if not (0.0 <= value <= 1.0):
                 raise ValueError(f"confidence_by_attention_state[{state}] must be in [0,1]")
+
+        if set(self.semantic_similarity_noise_std) != set(AttentionState):
+            raise ValueError("semantic_similarity_noise_std must define every attention state")
+        if set(self.confidence_noise_std) != set(AttentionState):
+            raise ValueError("confidence_noise_std must define every attention state")
+        for mapping_name in ("semantic_similarity_noise_std", "confidence_noise_std"):
+            for state, value in getattr(self, mapping_name).items():
+                if value < 0.0:
+                    raise ValueError(f"{mapping_name}[{state}] must be >= 0")
 
         if self.correctness_prob_min > self.correctness_prob_max:
             raise ValueError("correctness_prob_min must be <= correctness_prob_max")
