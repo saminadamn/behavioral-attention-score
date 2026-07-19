@@ -567,13 +567,21 @@ def test_stress_100000_workflow_executions() -> None:
         }
     )
 
+    total_sessions = len({r.session_id for r in records})
+
     state = new_workflow_state()
     state["dataset_artifact"] = large_dataset_artifact
     graph = build_graph()
-    # Phase 2 takes one LangGraph step per interaction (see graph.py's
-    # "Operational note on very large batches"); the default recursion_limit
-    # is far below 100,000+, so it must be raised explicitly here.
-    result = compile_graph(graph).invoke(state, config={"recursion_limit": len(records) + 1_000})
+    # Phase 2 takes one LangGraph step per interaction (GenerateTutorActionNode)
+    # PLUS one step per session (FinalizeSessionNode) — see graph.py's
+    # "Operational note on very large batches". A flat +1,000 buffer is not
+    # enough once replication produces thousands of sessions (a prior run
+    # with `len(records) + 1_000` hit LangGraph's GraphRecursionError after
+    # ~2 hours because total_sessions alone exceeded that buffer). Sizing
+    # the limit against both terms explicitly, plus the 4 batch-phase nodes
+    # and a safety margin, avoids under-provisioning again.
+    recursion_limit = len(records) + total_sessions + 1_000
+    result = compile_graph(graph).invoke(state, config={"recursion_limit": recursion_limit})
 
     assert len(result["tutor_actions"]) == len(records)
     assert sum(o["interactions_processed"] for o in result["session_outputs"]) == len(records)

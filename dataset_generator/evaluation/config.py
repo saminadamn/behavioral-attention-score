@@ -99,7 +99,7 @@ class MetricsSelection(BaseModel):
         "average_reward", "positive_ratio", "reward_decomposition", "temporal_consistency",
     )
     intervention_metrics: tuple[InterventionMetricName, ...] = (
-        "need_detection_precision", "policy_frequencies", "cooldown_activations",
+        "intervention_execution_rate", "policy_frequencies", "cooldown_activations",
         "average_intervention_spacing", "policy_diversity",
     )
     workflow_metrics: tuple[WorkflowMetricName, ...] = (
