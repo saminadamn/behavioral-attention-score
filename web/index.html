@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BAS — Try the Pipeline</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background:#f8faf7; color:#1c1f1a; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-thumb{background:#cbd3c6;border-radius:10px}
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<header class="border-b border-[#e6ebe3] bg-white/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+  <div>
+    <div class="text-[10px] font-bold uppercase tracking-wider text-[#5d645a]">Birla Institute of Technology, Mesra</div>
+    <h1 class="text-sm font-bold">Behavioral Attention Score (BAS) <span class="font-normal text-[#5d645a]">— pipeline demo</span></h1>
+  </div>
+  <span class="text-xs text-[#5d645a] hidden md:inline">Samina Parveen · BTECH/10007/23</span>
+</header>
+
+<main class="flex-1 max-w-5xl w-full mx-auto p-6 space-y-6">
+
+  <!-- Honesty banner: this is the load-bearing disclosure, not decoration -->
+  <section class="bg-white border border-[#e6ebe3] rounded-2xl p-5">
+    <p class="text-xs text-[#5d645a] leading-relaxed">
+      This page demonstrates only what is actually implemented in the
+      <code class="mono bg-[#f0f3ee] px-1 rounded">bas-dataset-generator</code> repository: five student
+      archetypes, the three-state attention transition model, the BAS scoring formula, the reward
+      decomposition, and the eight intervention policies. The calculator below runs the documented
+      formulas directly in your browser as a teaching aid — it is <strong>not</strong> the Python engine
+      itself, does not use real learner data, and is not a diagnostic tool.
+    </p>
+  </section>
+
+  <!-- Tabs: 3 sections total, honoring "least amount of pages" -->
+  <nav class="bg-white border border-[#e6ebe3] rounded-2xl p-1.5 flex gap-1.5">
+    <button data-tab="overview" class="tab-btn flex-1 py-2 text-xs font-semibold rounded-xl">Overview</button>
+    <button data-tab="try" class="tab-btn flex-1 py-2 text-xs font-semibold rounded-xl">Try the BAS Formula</button>
+    <button data-tab="policies" class="tab-btn flex-1 py-2 text-xs font-semibold rounded-xl">Intervention Policies</button>
+  </nav>
+
+  <!-- SECTION 1: Overview -->
+  <section id="tab-overview" class="space-y-4">
+    <div class="bg-white border border-[#e6ebe3] rounded-2xl p-6">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-[#5d645a] mb-3">What's implemented</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3">
+          <div class="text-xl font-bold mono">12</div>
+          <div class="text-[10px] text-[#5d645a]">modules built</div>
+        </div>
+        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3">
+          <div class="text-xl font-bold mono">385</div>
+          <div class="text-[10px] text-[#5d645a]">tests passing</div>
+        </div>
+        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3">
+          <div class="text-xl font-bold mono">5</div>
+          <div class="text-[10px] text-[#5d645a]">student archetypes</div>
+        </div>
+        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3">
+          <div class="text-xl font-bold mono">8</div>
+          <div class="text-[10px] text-[#5d645a]">intervention policies</div>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white border border-[#e6ebe3] rounded-2xl p-6">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-[#5d645a] mb-3">Pipeline</h2>
+      <div class="flex flex-wrap gap-2 text-[11px] mono">
+        <span class="bg-[#e1f5d6] text-[#2c5222] px-3 py-1.5 rounded-full">Config</span>→
+        <span class="bg-[#e1f5d6] text-[#2c5222] px-3 py-1.5 rounded-full">Dataset</span>→
+        <span class="bg-[#e0eafc] text-[#1e3a8a] px-3 py-1.5 rounded-full">BAS</span>→
+        <span class="bg-[#e0eafc] text-[#1e3a8a] px-3 py-1.5 rounded-full">Reward</span>→
+        <span class="bg-[#fef3c7] text-[#92400e] px-3 py-1.5 rounded-full">Intervention</span>→
+        <span class="bg-[#f3e8ff] text-[#6b21a8] px-3 py-1.5 rounded-full">LangGraph Orchestration</span>
+      </div>
+      <p class="text-xs text-[#5d645a] mt-3 leading-relaxed">
+        Every stage is a deterministic Python module (never a trained model unless explicitly noted);
+        source: <a class="underline" href="https://github.com/saminadamn/behavioral-attention-score" target="_blank">github.com/saminadamn/behavioral-attention-score</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 2: Try the formula -->
+  <section id="tab-try" class="hidden space-y-4">
+    <div class="bg-white border border-[#e6ebe3] rounded-2xl p-6 space-y-4">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-[#5d645a]">Pick an archetype</h2>
+      <div id="archetypes" class="grid grid-cols-1 md:grid-cols-5 gap-2"></div>
+
+      <h2 class="text-xs font-bold uppercase tracking-wider text-[#5d645a] pt-2">Adjust evidence features</h2>
+      <div id="sliders" class="space-y-3"></div>
+
+      <div class="grid grid-cols-3 gap-3 pt-2">
+        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3 text-center">
+          <div class="text-[10px] text-[#5d645a]">BAS score</div>
+          <div id="out-bas" class="text-xl font-bold mono">0.00</div>
+        </div>
+        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3 text-center">
+          <div class="text-[10px] text-[#5d645a]">Reward (perf + behav − cost)</div>
+          <div id="out-reward" class="text-xl font-bold mono">0.00</div>
+        </div>
+        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3 text-center">
+          <div class="text-[10px] text-[#5d645a]">Attention state</div>
+          <div id="out-state" class="text-sm font-bold mono pt-1.5">Focused</div>
+        </div>
+      </div>
+      <p class="text-[10px] text-[#5d645a] leading-relaxed border-t border-[#e6ebe3] pt-3">
+        Formula (Module 9): BAS = clip( Σ w·e / Σ w ). Reward (Module 10): R = R_performance + R_behaviour − R_cost.
+        Both computed client-side from the sliders above, matching the documented formulas exactly.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 3: Policies -->
+  <section id="tab-policies" class="hidden">
+    <div class="bg-white border border-[#e6ebe3] rounded-2xl p-6">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-[#5d645a] mb-3">The 8 registered policies (Module 11)</h2>
+      <div id="policy-list" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs"></div>
+      <p class="text-[10px] text-[#5d645a] mt-4 border-t border-[#e6ebe3] pt-3">
+        The real planner selects one policy per interaction deterministically from need score, eligibility,
+        and cooldown state — it is a rule-based engine, not a trained reinforcement-learning policy.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="border-t border-[#e6ebe3] text-center text-[10px] text-[#5d645a] py-4">
+  Synthetic demo only. Not a diagnostic tool. Birla Institute of Technology, Mesra.
+</footer>
+
+<script>
+const ARCHETYPES = [
+  {id:'focused', name:'Consistently Focused', state:'Focused', correctness:.92, engagement:.88, latency:.85, fatigue:.10},
+  {id:'fatigued', name:'Gradually Fatigued', state:'Focused', correctness:.70, engagement:.60, latency:.55, fatigue:.55},
+  {id:'distractible', name:'Highly Distractible', state:'Distracted', correctness:.45, engagement:.40, latency:.35, fatigue:.35},
+  {id:'impulsive', name:'Highly Impulsive', state:'Impulsive', correctness:.35, engagement:.50, latency:.90, fatigue:.20},
+  {id:'recovering', name:'Recovering Learner', state:'Distracted', correctness:.58, engagement:.62, latency:.50, fatigue:.30},
+];
+const POLICIES = [
+  ['No Intervention','Baseline — nothing else is warranted'],
+  ['Hint','Low correctness, adequate engagement'],
+  ['Concept Review','Persistent BAS decline plus low correctness'],
+  ['Difficulty Reduction','Low correctness on a high-difficulty prompt'],
+  ['Motivational Prompt','Low engagement despite adequate correctness'],
+  ['Break Recommendation','Fatigue above threshold'],
+  ['Encouragement','Low confidence despite adequate correctness'],
+  ['Question Reframing','Low semantic similarity to the prompt'],
+];
+const FEATURES = [
+  {key:'correctness', label:'Correctness', weight:5},
+  {key:'engagement', label:'Engagement', weight:3},
+  {key:'latency', label:'Latency (normalized, higher=better)', weight:2},
+  {key:'fatigue', label:'Fatigue (inverse polarity)', weight:3, inverse:true},
+];
+let active = ARCHETYPES[0];
+let values = {};
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.className='tab-btn flex-1 py-2 text-xs font-semibold rounded-xl text-[#5d645a]');
+    btn.className='tab-btn flex-1 py-2 text-xs font-semibold rounded-xl bg-[#e1f5d6] text-[#2c5222] border border-[#cbdcb5]';
+    document.querySelectorAll('main > section[id^="tab-"]').forEach(s=>s.classList.add('hidden'));
+    document.getElementById('tab-'+btn.dataset.tab).classList.remove('hidden');
+  });
+});
+document.querySelector('.tab-btn').click();
+
+function renderArchetypes(){
+  document.getElementById('archetypes').innerHTML = ARCHETYPES.map(a=>`
+    <button class="arch-btn text-left p-3 rounded-xl border text-xs ${a.id===active.id?'border-[#1c1f1a] bg-[#f8faf7]':'border-[#e6ebe3] bg-white'}" data-id="${a.id}">
+      <div class="font-bold">${a.name}</div>
+      <div class="text-[10px] text-[#5d645a] mt-0.5">typical state: ${a.state}</div>
+    </button>`).join('');
+  document.querySelectorAll('.arch-btn').forEach(b=>b.addEventListener('click',()=>{
+    active = ARCHETYPES.find(a=>a.id===b.dataset.id);
+    FEATURES.forEach(f=>values[f.key]=active[f.key]);
+    renderArchetypes(); renderSliders(); compute();
+  }));
+}
+
+function renderSliders(){
+  document.getElementById('sliders').innerHTML = FEATURES.map(f=>`
+    <div class="space-y-1">
+      <div class="flex justify-between text-xs"><span class="text-[#5d645a]">${f.label}</span><span class="mono font-semibold" id="val-${f.key}">${values[f.key].toFixed(2)}</span></div>
+      <input type="range" min="0" max="1" step="0.01" value="${values[f.key]}" data-key="${f.key}" class="w-full accent-[#2c5222]">
+    </div>`).join('');
+  document.querySelectorAll('#sliders input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      values[e.target.dataset.key] = parseFloat(e.target.value);
+      document.getElementById('val-'+e.target.dataset.key).innerText = values[e.target.dataset.key].toFixed(2);
+      compute();
+    });
+  });
+}
+
+function compute(){
+  let wsum=0, esum=0;
+  FEATURES.forEach(f=>{
+    const e = f.inverse ? 1 - values[f.key] : values[f.key];
+    wsum += f.weight; esum += f.weight*e;
+  });
+  const bas = Math.min(1, Math.max(0, esum/wsum));
+  const perf = values.correctness*0.6;
+  const behav = (values.engagement*0.5) - (values.fatigue*0.3);
+  const cost = 0.0;
+  const reward = perf + behav - cost;
+  document.getElementById('out-bas').innerText = bas.toFixed(2);
+  document.getElementById('out-reward').innerText = reward.toFixed(2);
+  document.getElementById('out-state').innerText = active.state;
+}
+
+function renderPolicies(){
+  document.getElementById('policy-list').innerHTML = POLICIES.map(([n,d])=>`
+    <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3">
+      <div class="font-bold text-[#1c1f1a]">${n}</div>
+      <div class="text-[10px] text-[#5d645a] mt-0.5">${d}</div>
+    </div>`).join('');
+}
+
+FEATURES.forEach(f=>values[f.key]=active[f.key]);
+renderArchetypes(); renderSliders(); renderPolicies(); compute();
+</script>
+</body>
+</html>
