@@ -102,7 +102,16 @@ def compute_dataset_metrics(dataset_artifact: DatasetArtifact) -> DatasetMetrics
 
 
 class BASMetrics(BaseModel):
-    """Descriptive metrics over a `BASArtifact`, beyond what `BASStatistics` carries."""
+    """Descriptive metrics over a `BASArtifact`, beyond what `BASStatistics` carries.
+
+    `average_confidence` is reused directly from `bas_artifact.statistics`
+    (never recomputed) specifically so that ablations affecting BAS
+    confidence weighting but not the score itself (e.g. Module 13's
+    `disable_confidence_weighting`) are still visible somewhere in this
+    metric set — without it, such an ablation would show identical
+    `mean`/`variance`/etc. to the baseline and look like it had no effect,
+    when the effect is real but only shows up in confidence, not score.
+    """
 
     model_config = ConfigDict(frozen=True)
 
@@ -111,6 +120,7 @@ class BASMetrics(BaseModel):
     average_session_trend: float
     recovery_rate: float
     volatility: float
+    average_confidence: float
 
 
 def compute_bas_metrics(bas_artifact: BASArtifact, recovery_window: int = 3) -> BASMetrics:
@@ -125,7 +135,10 @@ def compute_bas_metrics(bas_artifact: BASArtifact, recovery_window: int = 3) -> 
 
     scores = [r.score for r in bas_artifact.records]
     if not scores:
-        return BASMetrics(mean=0.0, variance=0.0, average_session_trend=0.0, recovery_rate=0.0, volatility=0.0)
+        return BASMetrics(
+            mean=0.0, variance=0.0, average_session_trend=0.0, recovery_rate=0.0, volatility=0.0,
+            average_confidence=bas_artifact.statistics.average_confidence,
+        )
 
     mean = sum(scores) / len(scores)
     variance = sum((s - mean) ** 2 for s in scores) / len(scores)
@@ -160,6 +173,7 @@ def compute_bas_metrics(bas_artifact: BASArtifact, recovery_window: int = 3) -> 
     return BASMetrics(
         mean=mean, variance=variance, average_session_trend=average_session_trend,
         recovery_rate=recovery_rate, volatility=volatility,
+        average_confidence=bas_artifact.statistics.average_confidence,
     )
 
 
