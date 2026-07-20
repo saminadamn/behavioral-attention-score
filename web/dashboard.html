@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BAS Dashboard // Real Engine Output</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = { theme: { extend: {
+  fontFamily: { sans: ['"Plus Jakarta Sans"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] },
+  colors: { brand: { bg:'#f8faf7', textDark:'#1c1f1a', textMuted:'#5d645a',
+    accentGreen:'#e1f5d6', accentGreenDark:'#2c5222', border:'#e6ebe3' } }
+}}}
+</script>
+<style>
+body{background:#f8faf7;font-family:'Plus Jakarta Sans',sans-serif;color:#1c1f1a}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:#f0f3ee}
+::-webkit-scrollbar-thumb{background:#cbd3c6;border-radius:10px}
+</style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+<header class="border-b border-brand-border bg-white/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+  <div class="flex items-center gap-4">
+    <svg class="w-8 h-8 text-brand-textDark" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4"/><path d="M50 20 L75 40 L75 70 L50 90 L25 70 L25 40 Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="50" cy="50" r="4" fill="currentColor"/></svg>
+    <div>
+      <span class="text-[10px] font-bold tracking-wider uppercase text-brand-textMuted">Birla Institute of Technology, Mesra</span>
+      <h1 class="text-sm font-bold tracking-tight">BAS Dashboard <span class="text-brand-textMuted font-normal">| Real Engine Output</span></h1>
+    </div>
+  </div>
+  <div class="flex items-center gap-3">
+    <a href="index.html" class="text-xs font-semibold text-brand-textMuted hover:text-brand-textDark underline decoration-dotted">← Simulation Demo</a>
+    <span class="bg-brand-accentGreen text-brand-accentGreenDark text-xs font-semibold px-3 py-1.5 rounded-full border border-[#cbdcb5]">
+      Computed by the Python engine
+    </span>
+  </div>
+</header>
+
+<main class="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 space-y-6">
+
+  <section class="bg-white border border-brand-border rounded-2xl p-5 flex flex-wrap items-center justify-between gap-3">
+    <p class="text-xs text-brand-textMuted leading-relaxed max-w-3xl">
+      Every number and chart on this page was computed by the actual Python pipeline
+      (<span class="font-mono">ObserverAgent → BASEngine → RewardEngine → InterventionPlanner</span>)
+      via <span class="font-mono">scripts/export_dashboard_data.py</span> and exported as a static artifact —
+      nothing here is simulated in the browser.
+    </p>
+    <div id="meta-box" class="text-[10px] font-mono text-brand-textMuted bg-brand-bg border border-brand-border rounded-lg px-3 py-2">loading…</div>
+  </section>
+
+  <!-- HEADLINE STATS -->
+  <section id="stat-cards" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3"></section>
+
+  <!-- CHARTS ROW 1 -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white border border-brand-border rounded-2xl p-5">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-1">BAS Trajectories (per session)</h3>
+      <p class="text-[10px] text-brand-textMuted mb-3">Smoothed Behavioural Attention Score per interaction, first 6 sessions.</p>
+      <canvas id="chart-bas" height="220"></canvas>
+    </div>
+    <div class="bg-white border border-brand-border rounded-2xl p-5">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-1">Reward Decomposition <span id="reward-session-label" class="font-mono normal-case"></span></h3>
+      <p class="text-[10px] text-brand-textMuted mb-3">R = performance + behaviour − cost (exact identity, invariant-tested). Bars stack components; line is total.</p>
+      <canvas id="chart-reward" height="220"></canvas>
+    </div>
+  </section>
+
+  <!-- CHARTS ROW 2 -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="bg-white border border-brand-border rounded-2xl p-5">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-3">Policy Distribution</h3>
+      <canvas id="chart-policy" height="240"></canvas>
+    </div>
+    <div class="bg-white border border-brand-border rounded-2xl p-5 lg:col-span-2 flex flex-col">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-3">Executed Interventions (with engine-generated reasons)</h3>
+      <div id="decision-list" class="flex-1 overflow-y-auto space-y-2 max-h-[280px] pr-1 text-xs"></div>
+    </div>
+  </section>
+
+  <!-- SESSION TABLE -->
+  <section class="bg-white border border-brand-border rounded-2xl p-5">
+    <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-3">Session Summaries (all sessions)</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse" id="session-table">
+        <thead><tr class="border-b border-brand-border text-brand-textMuted">
+          <th class="py-2 px-2">Session</th><th class="py-2 px-2">Student</th>
+          <th class="py-2 px-2 text-right">Interactions</th><th class="py-2 px-2 text-right">Interventions</th>
+          <th class="py-2 px-2 text-right">Avg Confidence</th><th class="py-2 px-2 text-right">Cooldown Suppr.</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="border-t border-brand-border bg-white py-5 px-8 text-center text-xs text-brand-textMuted mt-8">
+  <p>Synthetic research data — not a diagnostic tool. Source:
+  <a class="underline text-brand-textDark" href="https://github.com/saminadamn/behavioral-attention-score" target="_blank">github.com/saminadamn/behavioral-attention-score</a></p>
+</footer>
+
+<script>
+const PALETTE = ['#2c5222','#0284c7','#d97706','#e11d48','#6b21a8','#0d9488'];
+
+async function init(){
+  const res = await fetch('data/dashboard.json');
+  if(!res.ok){ document.getElementById('meta-box').innerText = 'data/dashboard.json missing — run scripts/export_dashboard_data.py'; return; }
+  const d = await res.json();
+
+  document.getElementById('meta-box').innerHTML =
+    `seed=${d.meta.seed} · ${d.meta.record_count} records · ${d.meta.students} students × ${d.meta.sessions_per_student} sessions<br>` +
+    `dataset fp: ${d.meta.dataset_fingerprint.slice(0,10)}… · exported ${d.meta.generated_at.slice(0,19)}Z`;
+
+  const H = d.headline;
+  const cards = [
+    ['BAS Mean', H.bas_mean], ['BAS Volatility', H.bas_volatility],
+    ['Recovery Rate', H.bas_recovery_rate], ['Avg Reward', H.reward_average],
+    ['Positive Reward %', (H.reward_positive_ratio*100).toFixed(1)+'%'],
+    ['Executed Interv.', H.executed_interventions],
+    ['Cooldown Activ.', H.cooldown_activations],
+    ['Policy Diversity', H.policy_diversity],
+  ];
+  document.getElementById('stat-cards').innerHTML = cards.map(([label,val])=>`
+    <div class="bg-white border border-brand-border p-3 rounded-xl">
+      <span class="text-[10px] text-brand-textMuted block">${label}</span>
+      <span class="text-lg font-bold font-mono text-brand-textDark">${val}</span>
+    </div>`).join('');
+
+  // BAS trajectories
+  const sessions = Object.keys(d.bas_by_session);
+  new Chart(document.getElementById('chart-bas'), {
+    type: 'line',
+    data: { datasets: sessions.map((sid,i)=>({
+      label: sid, borderColor: PALETTE[i%PALETTE.length], backgroundColor: 'transparent',
+      pointRadius: 0, borderWidth: 1.8, tension: 0.25,
+      data: d.bas_by_session[sid].interactions.map((x,k)=>({x, y: d.bas_by_session[sid].scores[k]})),
+    }))},
+    options: { responsive:true, scales:{ x:{type:'linear',title:{display:true,text:'interaction'}},
+      y:{min:0,max:1,title:{display:true,text:'BAS'}}},
+      plugins:{legend:{labels:{boxWidth:10,font:{size:9}}}} }
+  });
+
+  // Reward decomposition
+  const R = d.reward_series;
+  document.getElementById('reward-session-label').innerText = '· ' + R.session_id;
+  new Chart(document.getElementById('chart-reward'), {
+    data: {
+      labels: R.interactions,
+      datasets: [
+        { type:'bar', label:'performance', data:R.performance, backgroundColor:'#2c5222', stack:'s' },
+        { type:'bar', label:'behaviour',   data:R.behaviour,   backgroundColor:'#0284c7', stack:'s' },
+        { type:'bar', label:'− cost',      data:R.cost.map(c=>-c), backgroundColor:'#e11d48', stack:'s' },
+        { type:'line', label:'total R',    data:R.total, borderColor:'#1c1f1a', borderWidth:1.8, pointRadius:0, tension:0.2 },
+      ],
+    },
+    options: { responsive:true, scales:{ x:{stacked:true,title:{display:true,text:'interaction'}},
+      y:{stacked:true,title:{display:true,text:'reward'}}},
+      plugins:{legend:{labels:{boxWidth:10,font:{size:9}}}} }
+  });
+
+  // Policy distribution
+  const pol = d.policy_distribution;
+  new Chart(document.getElementById('chart-policy'), {
+    type:'doughnut',
+    data:{ labels:Object.keys(pol),
+      datasets:[{ data:Object.values(pol),
+        backgroundColor:Object.keys(pol).map((_,i)=>PALETTE[i%PALETTE.length]).concat(['#94a3b8']) }]},
+    options:{ plugins:{ legend:{position:'bottom', labels:{boxWidth:10,font:{size:9}}} } }
+  });
+
+  // Executed decisions
+  document.getElementById('decision-list').innerHTML = d.executed_decisions.length
+    ? d.executed_decisions.map(e=>`
+      <div class="bg-brand-bg border border-brand-border rounded-xl p-3">
+        <div class="flex justify-between text-[10px] text-brand-textMuted font-mono mb-1">
+          <span>${e.session_id} · #${e.interaction}</span>
+          <span class="font-bold text-brand-accentGreenDark">${e.policy}</span>
+        </div>
+        <p class="text-[11px] leading-relaxed">${e.reason}</p>
+      </div>`).join('')
+    : '<p class="text-brand-textMuted italic">No interventions executed in this run.</p>';
+
+  // Session table
+  document.querySelector('#session-table tbody').innerHTML = d.session_table.map(s=>`
+    <tr class="border-b border-brand-border/50">
+      <td class="py-2 px-2 font-mono">${s.session_id}</td><td class="py-2 px-2 font-mono">${s.student_id}</td>
+      <td class="py-2 px-2 text-right">${s.interactions}</td><td class="py-2 px-2 text-right">${s.interventions}</td>
+      <td class="py-2 px-2 text-right font-mono">${s.avg_confidence}</td>
+      <td class="py-2 px-2 text-right">${s.cooldown_suppressions}</td>
+    </tr>`).join('');
+}
+init();
+</script>
+</body>
+</html>
