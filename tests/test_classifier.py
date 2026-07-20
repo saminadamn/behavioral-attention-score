@@ -8,7 +8,6 @@ import pytest
 
 from dataset_generator.classifier.calibration import build_calibration_result, calibrate_model, compute_ece
 from dataset_generator.classifier.feature_importance import (
-    permutation_importance_report,
     tree_importance_report,
 )
 from dataset_generator.classifier.feature_selection import FeatureSelector

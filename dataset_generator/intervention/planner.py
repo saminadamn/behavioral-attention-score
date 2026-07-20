@@ -29,7 +29,6 @@ from dataset_generator.intervention.cooldown import NO_INTERVENTION_POLICY_NAME,
 from dataset_generator.intervention.detector import InterventionDetector
 from dataset_generator.intervention.models import (
     InterventionArtifact,
-    InterventionCandidate,
     InterventionDecision,
     InterventionDecisionMetadata,
     InterventionObservation,

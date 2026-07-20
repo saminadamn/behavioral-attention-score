@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from dataset_generator.config._validation import validate_probability_mapping
 from dataset_generator.config.attention_state import AttentionState
 from dataset_generator.config.prompt_generation import Difficulty
 

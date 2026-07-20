@@ -9,7 +9,7 @@ recomputes anything Module 6 already tracked incrementally.
 
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass
 
 from dataset_generator.models.session import SessionRecord

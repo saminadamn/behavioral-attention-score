@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from dataset_generator.config import AttentionState, default_config
 from dataset_generator.config.attention_state import combine_transition_matrix

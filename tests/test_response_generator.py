@@ -396,7 +396,7 @@ def test_features_derived_not_random_for_fixed_text() -> None:
     response = response_gen.generate_response(
         prompt=prompt, student=student, attention_state=AttentionState.FOCUSED, session_context=_ctx()
     )
-    from dataset_generator.utils import token_jaccard_similarity, word_tokenize
+    from dataset_generator.utils import word_tokenize
 
     tokens = word_tokenize(response.response_text)
     recomputed_diversity = len({t.lower() for t in tokens}) / len(tokens)

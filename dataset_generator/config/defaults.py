@@ -309,7 +309,6 @@ def default_config() -> GeneratorConfig:
         students=100,
         sessions_per_student=5,
         interactions_per_session=(20, 40),
-        noise=0.15,
         fatigue_enabled=True,
         intervention_probability=0.25,
         rolling_window=5,

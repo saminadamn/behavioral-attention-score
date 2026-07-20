@@ -34,7 +34,6 @@ from dataset_generator.intervention import (
     PolicyScorer,
     QuestionReframingPolicy,
     ScoringWeights,
-    build_intervention_session_summary,
     build_json_report,
     default_intervention_config,
     load_intervention_artifact,

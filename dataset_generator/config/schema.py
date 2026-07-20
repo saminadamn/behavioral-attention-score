@@ -314,7 +314,6 @@ class GeneratorConfig(BaseModel):
     students: int = Field(gt=0)
     sessions_per_student: int = Field(gt=0)
     interactions_per_session: tuple[int, int]
-    noise: float = Field(ge=0.0, le=1.0)
     fatigue_enabled: bool = True
     intervention_probability: float = Field(ge=0.0, le=1.0)
     rolling_window: int = Field(gt=0, default=5)

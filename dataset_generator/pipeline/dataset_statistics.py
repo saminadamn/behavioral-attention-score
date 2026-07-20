@@ -12,7 +12,6 @@ Module 7's brief lists separately — computed once, exposed under both
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 
 from dataset_generator.models.dataset import DatasetRecord, DatasetStatistics, FeatureDistributionSummary
