@@ -3,226 +3,683 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BAS — Try the Pipeline</title>
+<title>BAS SimView // Multi-Agent Attention Pipeline</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ['"Plus Jakarta Sans"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] },
+    colors: { brand: {
+      bg:'#f8faf7', card:'#ffffff', textDark:'#1c1f1a', textMuted:'#5d645a',
+      accentGreen:'#e1f5d6', accentGreenDark:'#2c5222', border:'#e6ebe3', blueTint:'#e0eafc'
+    }}
+  }}
+}
+</script>
 <style>
-  body { font-family: 'Plus Jakarta Sans', sans-serif; background:#f8faf7; color:#1c1f1a; }
-  .mono { font-family: 'JetBrains Mono', monospace; }
-  ::-webkit-scrollbar{width:5px;height:5px}
-  ::-webkit-scrollbar-thumb{background:#cbd3c6;border-radius:10px}
+body { background:#f8faf7; font-family:'Plus Jakarta Sans',sans-serif; color:#1c1f1a; }
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#f0f3ee}
+::-webkit-scrollbar-thumb{background:#cbd3c6;border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:#afb8aa}
+.text-underline-highlight{position:relative;z-index:1}
+.text-underline-highlight::after{content:'';position:absolute;left:0;bottom:2px;width:100%;height:8px;background:#e1f5d6;z-index:-1;border-radius:2px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.animate-fadeIn{animation:fadeIn .3s ease}
 </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="selection:bg-brand-accentGreen selection:text-brand-accentGreenDark min-h-screen flex flex-col antialiased">
 
-<header class="border-b border-[#e6ebe3] bg-white/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
-  <div>
-    <div class="text-[10px] font-bold uppercase tracking-wider text-[#5d645a]">Birla Institute of Technology, Mesra</div>
-    <h1 class="text-sm font-bold">Behavioral Attention Score (BAS) <span class="font-normal text-[#5d645a]">— pipeline demo</span></h1>
+<!-- HEADER -->
+<header class="border-b border-brand-border bg-white/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+  <div class="flex items-center gap-4">
+    <svg class="w-8 h-8 text-brand-textDark" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4"/>
+      <path d="M50 20 L75 40 L75 70 L50 90 L25 70 L25 40 Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="50" cy="50" r="12" fill="#2c5222" opacity="0.15"/>
+      <path d="M50 30 L50 70 M30 50 L70 50" stroke="currentColor" stroke-width="2"/>
+      <circle cx="50" cy="50" r="4" fill="currentColor"/>
+    </svg>
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] font-bold tracking-wider uppercase text-brand-textMuted">Birla Institute of Technology, Mesra</span>
+        <span class="bg-[#eaf1ec] text-[9px] text-brand-accentGreenDark font-bold px-2 py-0.5 rounded-full border border-[#d2e2d5]">JULY 2026</span>
+      </div>
+      <h1 class="text-sm font-bold tracking-tight text-brand-textDark">
+        BAS SimView <span class="text-brand-textMuted font-normal">| Multi-Agent Attention Pipeline</span>
+      </h1>
+    </div>
   </div>
-  <span class="text-xs text-[#5d645a] hidden md:inline">Samina Parveen · BTECH/10007/23</span>
+  <div class="flex items-center gap-4">
+    <span class="text-xs text-brand-textMuted hidden md:inline">Research Author: <strong class="text-brand-textDark font-semibold">Samina Parveen</strong> (BTECH/10007/23)</span>
+    <span class="bg-brand-accentGreen text-brand-accentGreenDark text-xs font-semibold px-3 py-1.5 rounded-full border border-[#cbdcb5] flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-[#2c5222] animate-ping"></span>
+      Deterministic Demo
+    </span>
+  </div>
 </header>
 
-<main class="flex-1 max-w-5xl w-full mx-auto p-6 space-y-6">
+<main class="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 space-y-8">
 
-  <!-- Honesty banner: this is the load-bearing disclosure, not decoration -->
-  <section class="bg-white border border-[#e6ebe3] rounded-2xl p-5">
-    <p class="text-xs text-[#5d645a] leading-relaxed">
-      This page demonstrates only what is actually implemented in the
-      <code class="mono bg-[#f0f3ee] px-1 rounded">bas-dataset-generator</code> repository: five student
-      archetypes, the three-state attention transition model, the BAS scoring formula, the reward
-      decomposition, and the eight intervention policies. The calculator below runs the documented
-      formulas directly in your browser as a teaching aid — it is <strong>not</strong> the Python engine
-      itself, does not use real learner data, and is not a diagnostic tool.
-    </p>
-  </section>
-
-  <!-- Tabs: 3 sections total, honoring "least amount of pages" -->
-  <nav class="bg-white border border-[#e6ebe3] rounded-2xl p-1.5 flex gap-1.5">
-    <button data-tab="overview" class="tab-btn flex-1 py-2 text-xs font-semibold rounded-xl">Overview</button>
-    <button data-tab="try" class="tab-btn flex-1 py-2 text-xs font-semibold rounded-xl">Try the BAS Formula</button>
-    <button data-tab="policies" class="tab-btn flex-1 py-2 text-xs font-semibold rounded-xl">Intervention Policies</button>
-  </nav>
-
-  <!-- SECTION 1: Overview -->
-  <section id="tab-overview" class="space-y-4">
-    <div class="bg-white border border-[#e6ebe3] rounded-2xl p-6">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-[#5d645a] mb-3">What's implemented</h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3">
-          <div class="text-xl font-bold mono">12</div>
-          <div class="text-[10px] text-[#5d645a]">modules built</div>
+  <!-- HERO -->
+  <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white border border-brand-border rounded-3xl p-6 md:p-8 shadow-sm">
+    <div class="lg:col-span-7 space-y-5">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-accentGreen text-brand-accentGreenDark text-xs font-bold rounded-full border border-[#cbdcb5]">
+        💡 Summer Research Thesis Prototype
+      </span>
+      <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-brand-textDark leading-tight">
+        Enabling exceptional <span class="text-underline-highlight">adaptive ADHD support</span> at every student touchpoint.
+      </h2>
+      <p class="text-sm md:text-base text-brand-textMuted leading-relaxed">
+        Behavioral Attention Score (BAS) is a deterministic multi-agent pipeline for adaptive learning
+        research: a synthetic dataset generator, an explainable attention score, a decomposed reward
+        signal, a rule-based intervention planner, and a LangGraph orchestration layer. This page mirrors
+        the documented behaviour of the real Python engine in
+        <a class="font-mono bg-brand-bg text-brand-textDark px-1.5 py-0.5 rounded border border-brand-border underline decoration-dotted" href="https://github.com/saminadamn/behavioral-attention-score" target="_blank">behavioral-attention-score</a>.
+      </p>
+      <div class="flex flex-wrap gap-4 pt-2">
+        <div class="flex items-center -space-x-2">
+          <span class="w-8 h-8 rounded-full bg-brand-accentGreen text-brand-accentGreenDark border-2 border-white flex items-center justify-center font-bold text-xs">SP</span>
+          <span class="w-8 h-8 rounded-full bg-brand-blueTint text-[#1e3a8a] border-2 border-white flex items-center justify-center font-bold text-xs">IS</span>
         </div>
-        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3">
-          <div class="text-xl font-bold mono">385</div>
-          <div class="text-[10px] text-[#5d645a]">tests passing</div>
-        </div>
-        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3">
-          <div class="text-xl font-bold mono">5</div>
-          <div class="text-[10px] text-[#5d645a]">student archetypes</div>
-        </div>
-        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3">
-          <div class="text-xl font-bold mono">8</div>
-          <div class="text-[10px] text-[#5d645a]">intervention policies</div>
+        <div class="text-xs text-brand-textMuted flex flex-col justify-center">
+          <div>Guided by <span class="font-semibold text-brand-textDark">Prof. Itu Snigdh</span></div>
+          <div class="italic">Department of Computer Science &amp; Engineering</div>
         </div>
       </div>
     </div>
-    <div class="bg-white border border-[#e6ebe3] rounded-2xl p-6">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-[#5d645a] mb-3">Pipeline</h2>
-      <div class="flex flex-wrap gap-2 text-[11px] mono">
-        <span class="bg-[#e1f5d6] text-[#2c5222] px-3 py-1.5 rounded-full">Config</span>→
-        <span class="bg-[#e1f5d6] text-[#2c5222] px-3 py-1.5 rounded-full">Dataset</span>→
-        <span class="bg-[#e0eafc] text-[#1e3a8a] px-3 py-1.5 rounded-full">BAS</span>→
-        <span class="bg-[#e0eafc] text-[#1e3a8a] px-3 py-1.5 rounded-full">Reward</span>→
-        <span class="bg-[#fef3c7] text-[#92400e] px-3 py-1.5 rounded-full">Intervention</span>→
-        <span class="bg-[#f3e8ff] text-[#6b21a8] px-3 py-1.5 rounded-full">LangGraph Orchestration</span>
-      </div>
-      <p class="text-xs text-[#5d645a] mt-3 leading-relaxed">
-        Every stage is a deterministic Python module (never a trained model unless explicitly noted);
-        source: <a class="underline" href="https://github.com/saminadamn/behavioral-attention-score" target="_blank">github.com/saminadamn/behavioral-attention-score</a>.
-      </p>
-    </div>
-  </section>
 
-  <!-- SECTION 2: Try the formula -->
-  <section id="tab-try" class="hidden space-y-4">
-    <div class="bg-white border border-[#e6ebe3] rounded-2xl p-6 space-y-4">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-[#5d645a]">Pick an archetype</h2>
-      <div id="archetypes" class="grid grid-cols-1 md:grid-cols-5 gap-2"></div>
-
-      <h2 class="text-xs font-bold uppercase tracking-wider text-[#5d645a] pt-2">Adjust evidence features</h2>
-      <div id="sliders" class="space-y-3"></div>
-
-      <div class="grid grid-cols-3 gap-3 pt-2">
-        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3 text-center">
-          <div class="text-[10px] text-[#5d645a]">BAS score</div>
-          <div id="out-bas" class="text-xl font-bold mono">0.00</div>
+    <div class="lg:col-span-5 bg-brand-bg border border-brand-border rounded-2xl p-6 space-y-4">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted">Thesis Implementation Verification</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-brand-border">
+          <span class="text-xs text-brand-textMuted block">Pytest Inventory</span>
+          <span class="text-2xl font-bold text-brand-textDark font-mono">385</span>
+          <span class="text-[10px] text-brand-accentGreenDark block font-medium">✓ Tests Passing (12 modules)</span>
         </div>
-        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3 text-center">
-          <div class="text-[10px] text-[#5d645a]">Reward (perf + behav − cost)</div>
-          <div id="out-reward" class="text-xl font-bold mono">0.00</div>
+        <div class="bg-white p-4 rounded-xl border border-brand-border">
+          <span class="text-xs text-brand-textMuted block">Classifier Accuracy</span>
+          <span class="text-2xl font-bold text-brand-textDark font-mono">N/A</span>
+          <span class="text-[10px] text-brand-textMuted block italic">No published benchmark</span>
         </div>
-        <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3 text-center">
-          <div class="text-[10px] text-[#5d645a]">Attention state</div>
-          <div id="out-state" class="text-sm font-bold mono pt-1.5">Focused</div>
+        <div class="bg-white p-4 rounded-xl border border-brand-border">
+          <span class="text-xs text-brand-textMuted block">Student Archetypes</span>
+          <span class="text-2xl font-bold text-brand-textDark font-mono">5</span>
+          <span class="text-[10px] text-brand-accentGreenDark block font-medium">✓ Factory-registered</span>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-brand-border">
+          <span class="text-xs text-brand-textMuted block">Intervention Policies</span>
+          <span class="text-2xl font-bold text-brand-textDark font-mono">8</span>
+          <span class="text-[10px] text-brand-accentGreenDark block font-medium">✓ Rule-based, not RL</span>
         </div>
       </div>
-      <p class="text-[10px] text-[#5d645a] leading-relaxed border-t border-[#e6ebe3] pt-3">
-        Formula (Module 9): BAS = clip( Σ w·e / Σ w ). Reward (Module 10): R = R_performance + R_behaviour − R_cost.
-        Both computed client-side from the sliders above, matching the documented formulas exactly.
-      </p>
+      <div class="text-[11px] text-brand-textMuted bg-[#f3f7f1] p-3 rounded-lg border border-brand-border">
+        <strong>Notice:</strong> No classifier accuracy is fabricated — the repository ships training
+        infrastructure, not a published benchmark. All numbers above are verifiable from the test suite.
+      </div>
     </div>
   </section>
 
-  <!-- SECTION 3: Policies -->
-  <section id="tab-policies" class="hidden">
-    <div class="bg-white border border-[#e6ebe3] rounded-2xl p-6">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-[#5d645a] mb-3">The 8 registered policies (Module 11)</h2>
-      <div id="policy-list" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs"></div>
-      <p class="text-[10px] text-[#5d645a] mt-4 border-t border-[#e6ebe3] pt-3">
-        The real planner selects one policy per interaction deterministically from need score, eligibility,
-        and cooldown state — it is a rule-based engine, not a trained reinforcement-learning policy.
-      </p>
-    </div>
+  <!-- TABS -->
+  <section class="bg-white border border-brand-border p-2 rounded-2xl flex flex-wrap gap-2 shadow-sm">
+    <button id="tab-btn-sim" class="flex-1 min-w-[150px] py-2.5 px-4 text-xs font-semibold rounded-xl transition duration-150 bg-brand-accentGreen text-brand-accentGreenDark border border-[#cbdcb5]" onclick="switchTab('sim')">Pipeline Simulation Arena</button>
+    <button id="tab-btn-docs" class="flex-1 min-w-[150px] py-2.5 px-4 text-xs font-semibold rounded-xl transition duration-150 text-brand-textMuted hover:text-brand-textDark" onclick="switchTab('docs')">Thesis Document Chapters</button>
+    <button id="tab-btn-formula" class="flex-1 min-w-[150px] py-2.5 px-4 text-xs font-semibold rounded-xl transition duration-150 text-brand-textMuted hover:text-brand-textDark" onclick="switchTab('formula')">BAS Aggregation Equations</button>
   </section>
+
+  <!-- TAB: SIMULATION ARENA -->
+  <div id="tab-content-sim" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+    <!-- LEFT -->
+    <div class="lg:col-span-5 space-y-6">
+
+      <div class="bg-white border border-brand-border rounded-2xl p-6 shadow-sm space-y-4">
+        <div class="flex justify-between items-center border-b border-brand-border pb-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-brand-accentGreenDark" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Generator Parameters
+          </h3>
+          <span id="fingerprint-tag" class="text-[9px] font-mono px-2 py-0.5 bg-brand-bg text-brand-textMuted border border-brand-border rounded" title="Real SHA-256 of the demo parameters, computed in-browser">seed…</span>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <label for="config-seed" class="text-brand-textMuted">Random Generation Seed</label>
+            <span class="text-brand-textDark font-mono font-semibold">seed = <span id="val-seed">42</span></span>
+          </div>
+          <input id="config-seed" type="range" min="1" max="9999" value="42" class="w-full h-1 bg-brand-bg rounded-lg appearance-none cursor-pointer accent-[#2c5222]" oninput="onSeedChange()">
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <label for="config-speed" class="text-brand-textMuted">Simulated Refresh Rate</label>
+            <span class="text-brand-textDark font-mono font-semibold"><span id="val-speed">1.2</span>s / step</span>
+          </div>
+          <input id="config-speed" type="range" min="0.5" max="3" step="0.1" value="1.2" class="w-full h-1 bg-brand-bg rounded-lg appearance-none cursor-pointer accent-[#2c5222]" oninput="updateSpeedVal(this.value)">
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button id="btn-toggle-sim" class="flex-1 py-3 px-4 bg-brand-textDark text-white hover:bg-brand-textMuted font-bold rounded-full text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-sm" onclick="toggleSimulation()">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            Start Live Stream
+          </button>
+          <button class="py-3 px-5 bg-brand-bg hover:bg-brand-border text-brand-textDark rounded-full text-xs font-semibold border border-brand-border transition duration-150" onclick="resetSimulation()">Reset</button>
+        </div>
+        <p class="text-[10px] text-brand-textMuted leading-relaxed">
+          The stream below is an illustrative, client-side re-enactment of the documented archetype
+          tendencies (seeded, reproducible) — it is not output from the Python engine.
+        </p>
+      </div>
+
+      <!-- ARCHETYPES -->
+      <div class="bg-white border border-brand-border rounded-2xl p-6 shadow-sm space-y-4">
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted">Student Profile Archetypes</h3>
+          <p class="text-[11px] text-brand-textMuted mt-1">All five factory-registered profiles from <span class="font-mono">generators/profiles.py</span>.</p>
+        </div>
+        <div class="grid grid-cols-1 gap-2" id="archetype-list"></div>
+      </div>
+
+      <!-- DISCLOSURE -->
+      <div class="bg-[#fcf8f2] border border-[#ebd7be] rounded-2xl p-5 space-y-2">
+        <div class="flex items-center gap-2 text-[#9a641a]">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <h4 class="text-xs font-bold uppercase tracking-wider">Academic Disclosure &amp; Scope</h4>
+        </div>
+        <p class="text-[11px] text-[#7d5012] leading-relaxed">
+          Simulated learner behaviours are synthetic approximations for software validation. They are
+          explicitly not diagnostic outputs. No medical or ADHD finding about any real person can be
+          drawn from this framework.
+        </p>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="lg:col-span-7 space-y-6">
+
+      <div class="bg-white border border-brand-border rounded-2xl p-6 shadow-sm space-y-4">
+        <div class="flex justify-between items-center border-b border-brand-border pb-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted">Synthetic State Transition Tracker</h3>
+          <span class="text-xs text-brand-textMuted font-medium italic">Markov 3-state model</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div id="node-FOCUSED" class="bg-brand-bg border border-brand-border rounded-xl p-4 flex flex-col items-center text-center transition-all duration-300">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#2c5222] mb-1"></span>
+            <span class="text-xs font-bold text-brand-textDark">Focused State</span>
+            <p class="text-[10px] text-brand-textMuted mt-1 leading-normal">High coherence, stable latency, high accuracy</p>
+          </div>
+          <div id="node-DISTRACTED" class="bg-brand-bg border border-brand-border rounded-xl p-4 flex flex-col items-center text-center transition-all duration-300">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 mb-1"></span>
+            <span class="text-xs font-bold text-brand-textDark">Distracted State</span>
+            <p class="text-[10px] text-brand-textMuted mt-1 leading-normal">High latency variance, accumulating fatigue, lower engagement</p>
+          </div>
+          <div id="node-IMPULSIVE" class="bg-brand-bg border border-brand-border rounded-xl p-4 flex flex-col items-center text-center transition-all duration-300">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 mb-1"></span>
+            <span class="text-xs font-bold text-brand-textDark">Impulsive State</span>
+            <p class="text-[10px] text-brand-textMuted mt-1 leading-normal">Rapid responses, high repetition ratio</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- METRICS -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white border border-brand-border p-4 rounded-xl shadow-sm flex flex-col justify-between">
+          <span class="text-xs text-brand-textMuted">Reaction Latency</span>
+          <div class="flex items-baseline gap-1 mt-1"><span id="stat-latency" class="text-lg font-bold font-mono text-brand-textDark">0.00</span><span class="text-[9px] text-brand-textMuted">sec</span></div>
+          <div class="w-full bg-brand-bg h-1 rounded-full mt-2 overflow-hidden"><div id="stat-bar-latency" class="bg-brand-textDark h-full transition-all duration-500" style="width:0%"></div></div>
+        </div>
+        <div class="bg-white border border-brand-border p-4 rounded-xl shadow-sm flex flex-col justify-between">
+          <span class="text-xs text-brand-textMuted">Semantic Coherence</span>
+          <div class="flex items-baseline gap-1 mt-1"><span id="stat-coherence" class="text-lg font-bold font-mono text-brand-textDark">0.00</span><span class="text-[9px] text-brand-textMuted">index</span></div>
+          <div class="w-full bg-brand-bg h-1 rounded-full mt-2 overflow-hidden"><div id="stat-bar-coherence" class="bg-[#2c5222] h-full transition-all duration-500" style="width:0%"></div></div>
+        </div>
+        <div class="bg-white border border-brand-border p-4 rounded-xl shadow-sm flex flex-col justify-between">
+          <span class="text-xs text-brand-textMuted">Calculated BAS</span>
+          <div class="flex items-baseline gap-1 mt-1"><span id="stat-bas" class="text-lg font-bold font-mono text-brand-textDark">0.00</span><span class="text-[9px] text-brand-textMuted">score</span></div>
+          <div class="w-full bg-brand-bg h-1 rounded-full mt-2 overflow-hidden"><div id="stat-bar-bas" class="bg-[#2c5222] h-full transition-all duration-500" style="width:0%"></div></div>
+        </div>
+        <div class="bg-white border border-brand-border p-4 rounded-xl shadow-sm flex flex-col justify-between">
+          <span class="text-xs text-brand-textMuted">Reward (perf+behav−cost)</span>
+          <div class="flex items-baseline gap-1 mt-1"><span id="stat-reward" class="text-lg font-bold font-mono text-brand-textDark">0.00</span><span class="text-[9px] text-brand-textMuted">score</span></div>
+          <div class="w-full bg-brand-bg h-1 rounded-full mt-2 overflow-hidden"><div id="stat-bar-reward" class="bg-brand-accentGreenDark h-full transition-all duration-500" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- LOGS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white border border-brand-border rounded-2xl p-5 flex flex-col h-[300px]">
+          <div class="flex justify-between items-center border-b border-brand-border pb-3 mb-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted">Simulated Learner Traces</h4>
+            <span class="text-[9px] font-mono text-brand-textMuted">7-subject curriculum</span>
+          </div>
+          <div id="interaction-feed-list" class="flex-1 overflow-y-auto space-y-2 pr-1 text-xs">
+            <div class="text-brand-textMuted italic text-center pt-20">Click "Start Live Stream" to generate synthetic behaviour logs.</div>
+          </div>
+        </div>
+        <div class="bg-white border border-brand-border rounded-2xl p-5 flex flex-col h-[300px]">
+          <div class="flex justify-between items-center border-b border-brand-border pb-3 mb-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted">Rule-Based Interventions</h4>
+            <span class="text-[9px] font-mono text-brand-textMuted">8 policies · cooldown</span>
+          </div>
+          <div id="intervention-log-list" class="flex-1 overflow-y-auto space-y-2 pr-1 text-[11px] font-mono">
+            <div class="text-brand-textMuted italic text-center pt-20 font-sans">Awaiting behaviour streams to run intervention scoring…</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB: DOCS -->
+  <div id="tab-content-docs" class="space-y-6 hidden">
+    <div class="bg-white border border-brand-border rounded-3xl p-6 shadow-sm">
+      <div class="flex items-center gap-3 border-b border-brand-border pb-4 mb-6">
+        <svg class="w-6 h-6 text-brand-textDark" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <div>
+          <h3 class="text-base font-bold text-brand-textDark">Academic Thesis Navigator</h3>
+          <p class="text-xs text-brand-textMuted">Chapter summaries from the B.Tech thesis report (MC300, CSE).</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="md:col-span-1 flex flex-col gap-1 border-r border-brand-border/80 pr-3" id="docs-chapter-nav"></div>
+        <div class="md:col-span-3 bg-brand-bg p-6 rounded-2xl border border-brand-border min-h-[300px] text-xs leading-relaxed space-y-4 text-brand-textDark" id="docs-content-pane"></div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-brand-border rounded-3xl p-6 shadow-sm">
+      <h4 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted border-b border-brand-border pb-3 mb-4">Implemented Behavioural Simulation Profiles</h4>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-brand-border text-brand-textMuted">
+              <th class="py-2.5 px-3">Profile Name</th>
+              <th class="py-2.5 px-3">Simulation Intention (per thesis Table 3.1)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-brand-border/50"><td class="py-3 px-3 text-brand-accentGreenDark font-bold">Consistently Focused</td><td class="py-3 px-3">Higher sustained engagement and stable behaviour.</td></tr>
+            <tr class="border-b border-brand-border/50"><td class="py-3 px-3 text-[#0284c7] font-bold">Gradually Fatigued</td><td class="py-3 px-3">Fatigue increases as session progress rises.</td></tr>
+            <tr class="border-b border-brand-border/50"><td class="py-3 px-3 text-amber-600 font-bold">Highly Distractible</td><td class="py-3 px-3">Greater latency variance and distractibility tendency.</td></tr>
+            <tr class="border-b border-brand-border/50"><td class="py-3 px-3 text-rose-600 font-bold">Highly Impulsive</td><td class="py-3 px-3">Shorter interactions and impulsive response tendency.</td></tr>
+            <tr class="border-b border-brand-border/50"><td class="py-3 px-3 text-[#6b21a8] font-bold">Recovering Learner</td><td class="py-3 px-3">Can receive configured benefit from intervention effect.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: FORMULA -->
+  <div id="tab-content-formula" class="space-y-6 hidden">
+    <div class="bg-white border border-brand-border rounded-3xl p-6 shadow-sm">
+      <h3 class="text-sm font-bold uppercase tracking-wider text-brand-textMuted border-b border-brand-border pb-3 mb-4">Evidence Aggregation Engine &amp; Logic</h3>
+      <p class="text-xs text-brand-textMuted leading-relaxed mb-6">
+        The Behavioural Attention Score aggregates weighted normalized evidence. When a feature is
+        missing, the remaining weights are renormalized rather than the feature silently counting as zero.
+      </p>
+      <div class="bg-brand-bg p-6 rounded-2xl border border-brand-border flex justify-center items-center my-6">
+        <div class="text-center space-y-2">
+          <span class="text-xs font-semibold text-brand-accentGreenDark block uppercase tracking-wider">Formula (thesis §3.7 · Module 9)</span>
+          <div class="text-base md:text-xl font-serif text-brand-textDark font-semibold font-mono">
+            S<sub>raw</sub> = clip( Σ<sub>i</sub> w<sub>i</sub>·e<sub>i</sub> / Σ<sub>i</sub> w<sub>i</sub> , l, u )
+          </div>
+          <div class="text-xs text-brand-textMuted pt-2 font-mono">
+            R<sub>t</sub> = R<sub>performance</sub> + R<sub>behaviour</sub> − R<sub>cost</sub> &nbsp;(Module 10, exact identity)
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs leading-relaxed">
+        <div class="p-4 bg-brand-bg rounded-xl border border-brand-border">
+          <strong class="text-brand-textDark">w<sub>i</sub> (Weights):</strong>
+          <p class="text-brand-textMuted mt-1">Configured coefficients per behavioural marker (correctness, latency, coherence, fatigue…).</p>
+        </div>
+        <div class="p-4 bg-brand-bg rounded-xl border border-brand-border">
+          <strong class="text-brand-textDark">e<sub>i</sub> (Evidence):</strong>
+          <p class="text-brand-textMuted mt-1">Normalized values in [0, 1], with positive/negative polarity mapped before aggregation.</p>
+        </div>
+        <div class="p-4 bg-brand-bg rounded-xl border border-brand-border">
+          <strong class="text-brand-textDark">l, u (Bounds):</strong>
+          <p class="text-brand-textMuted mt-1">Clip limits constraining the raw score to [0.0, 1.0].</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-brand-border rounded-3xl p-6 shadow-sm">
+      <h4 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-2">Live Weight Configurator &amp; Score Calculator</h4>
+      <p class="text-xs text-brand-textMuted mb-4">Toggle features on/off to watch the engine renormalize the remaining weights — the same missing-value convention the real Module 9 uses.</p>
+      <div class="space-y-3" id="formula-weight-matrix"></div>
+      <div class="mt-4 bg-brand-bg border border-brand-border rounded-xl p-4 flex items-center justify-between">
+        <span class="text-xs text-brand-textMuted">Resulting BAS (unsmoothed)</span>
+        <span id="formula-bas-out" class="text-xl font-bold font-mono text-brand-accentGreenDark">0.00</span>
+      </div>
+    </div>
+  </div>
 
 </main>
 
-<footer class="border-t border-[#e6ebe3] text-center text-[10px] text-[#5d645a] py-4">
-  Synthetic demo only. Not a diagnostic tool. Birla Institute of Technology, Mesra.
+<footer class="border-t border-brand-border bg-white py-6 px-8 text-center text-xs text-brand-textMuted mt-12">
+  <p>Birla Institute of Technology, Mesra © 2026 · B.Tech CSE Summer Project.</p>
+  <p class="mt-1 font-mono text-[10px] leading-relaxed">
+    Synthetic demo only — not a diagnostic tool. Source:
+    <a class="underline text-brand-textDark" href="https://github.com/saminadamn/behavioral-attention-score" target="_blank">github.com/saminadamn/behavioral-attention-score</a>
+  </p>
 </footer>
 
 <script>
-const ARCHETYPES = [
-  {id:'focused', name:'Consistently Focused', state:'Focused', correctness:.92, engagement:.88, latency:.85, fatigue:.10},
-  {id:'fatigued', name:'Gradually Fatigued', state:'Focused', correctness:.70, engagement:.60, latency:.55, fatigue:.55},
-  {id:'distractible', name:'Highly Distractible', state:'Distracted', correctness:.45, engagement:.40, latency:.35, fatigue:.35},
-  {id:'impulsive', name:'Highly Impulsive', state:'Impulsive', correctness:.35, engagement:.50, latency:.90, fatigue:.20},
-  {id:'recovering', name:'Recovering Learner', state:'Distracted', correctness:.58, engagement:.62, latency:.50, fatigue:.30},
-];
-const POLICIES = [
-  ['No Intervention','Baseline — nothing else is warranted'],
-  ['Hint','Low correctness, adequate engagement'],
-  ['Concept Review','Persistent BAS decline plus low correctness'],
-  ['Difficulty Reduction','Low correctness on a high-difficulty prompt'],
-  ['Motivational Prompt','Low engagement despite adequate correctness'],
-  ['Break Recommendation','Fatigue above threshold'],
-  ['Encouragement','Low confidence despite adequate correctness'],
-  ['Question Reframing','Low semantic similarity to the prompt'],
-];
-const FEATURES = [
-  {key:'correctness', label:'Correctness', weight:5},
-  {key:'engagement', label:'Engagement', weight:3},
-  {key:'latency', label:'Latency (normalized, higher=better)', weight:2},
-  {key:'fatigue', label:'Fatigue (inverse polarity)', weight:3, inverse:true},
-];
-let active = ARCHETYPES[0];
-let values = {};
+/* ---------- data (mirrors the real repo; no invented metrics) ---------- */
+const CHAPTER_DATA = {
+  "Abstract": { title: "Research Executive Summary",
+    text: "Open-source research software in Python that generates synthetic interaction data for the BAS pipeline. Before any sensitive learner data could ever be processed, the pipeline is validated on controlled synthetic data: student profiles, curriculum prompts, attention-state-conditioned responses, behavioural cues, session trajectories, dataset artifacts, BAS scores, reward summaries, and rule-based intervention plans. Typed Pydantic configuration, fixed seeds, separate RNG streams, validators, manifests and serializable artifacts make every run traceable and reproducible. It is not a clinical system and does not identify ADHD." },
+  "Ch 1: Introduction": { title: "Introduction and Related Work",
+    text: "Digital learning environments capture interaction traces — prompts attempted, responses, latency, session progression. Real learner data poses privacy, consent and medical-interpretation challenges, so this project generates synthetic, labelled classroom interactions controllable via typed configuration. It neither observes real students nor makes medical claims." },
+  "Ch 2: Architecture": { title: "Requirement Analysis and System Design",
+    text: "Functional requirements: load/validate/fingerprint configuration (FR1); five persistent student archetypes (FR2); curriculum-conditioned prompts and state-conditioned responses (FR3); behaviour generation and multi-interaction session simulation (FR4); flat dataset export to CSV/JSONL/Parquet with manifest (FR5); BAS, reward and intervention artifacts (FR6); LangGraph orchestration of the full pipeline (FR7). Stack: Python 3.10+, Pydantic 2, NumPy, pandas, SciPy, scikit-learn, LangGraph, pytest." },
+  "Ch 3: Methodology": { title: "Methodology and Implementation",
+    text: "GeneratorConfig is the control plane: profile distribution, class balance, transition matrices, curriculum, response/behaviour settings, session controls. Five profile classes are factory-registered rather than dispatched through a conditional chain. The prompt generator draws from a seven-subject curriculum; the response generator derives lexical diversity, semantic similarity, sentiment, repetition, coherence and engagement from the composed text itself. BAS = clip(Σw·e/Σw) with missing-feature renormalization, then per-session temporal smoothing. Reward decomposes exactly as R = performance + behaviour − cost. The intervention planner is deterministic and rule-based — need detection, eligibility, scoring, cooldown — never a trained RL policy." },
+  "Ch 4: Verification": { title: "Verification, Results and Discussion",
+    text: "385 pytest tests across twelve modules, including 100,000+-scale stress tests per module and dedicated determinism, leakage and serialization checks. No classifier accuracy is published — the repository ships training infrastructure, not a benchmark run, and fabricating figures would be misleading. The strongest result is architectural: a typed, composable, inspectable path from synthetic learner profile to downstream decision artifacts." },
+};
 
-document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.className='tab-btn flex-1 py-2 text-xs font-semibold rounded-xl text-[#5d645a]');
-    btn.className='tab-btn flex-1 py-2 text-xs font-semibold rounded-xl bg-[#e1f5d6] text-[#2c5222] border border-[#cbdcb5]';
-    document.querySelectorAll('main > section[id^="tab-"]').forEach(s=>s.classList.add('hidden'));
-    document.getElementById('tab-'+btn.dataset.tab).classList.remove('hidden');
-  });
+const STUDENT_ARCHETYPES = [
+  { id:"focused",      name:"Consistently Focused", desc:"Stable task-tracking and high response coherence.",            pill:"text-[#2c5222] bg-[#e1f5d6] border-[#cbdcb5]", baseCoherence:0.90, baseLatency:1.1, homeState:"FOCUSED" },
+  { id:"fatigued",     name:"Gradually Fatigued",   desc:"Performance drops as lesson steps accumulate.",                pill:"text-[#0284c7] bg-[#e0f2fe] border-[#bae6fd]", baseCoherence:0.75, baseLatency:1.5, homeState:"FOCUSED" },
+  { id:"distractible", name:"Highly Distractible",  desc:"Intermittent focus switches and broad response latency.",      pill:"text-[#d97706] bg-[#fef3c7] border-[#fde68a]", baseCoherence:0.55, baseLatency:2.3, homeState:"DISTRACTED" },
+  { id:"impulsive",    name:"Highly Impulsive",     desc:"Fast responses combined with high pattern repetition.",        pill:"text-[#e11d48] bg-[#ffe4e6] border-[#fecdd3]", baseCoherence:0.30, baseLatency:0.4, homeState:"IMPULSIVE" },
+  { id:"recovering",   name:"Recovering Learner",   desc:"Below-baseline start; responds well to intervention effects.", pill:"text-[#6b21a8] bg-[#f3e8ff] border-[#e9d5ff]", baseCoherence:0.58, baseLatency:1.6, homeState:"DISTRACTED" },
+];
+
+const CURRICULUM_PROMPTS = [
+  { subject:"Mathematics",       prompt:"Apply the distributive property to expand the given expression." },
+  { subject:"Science",           prompt:"Explain the energy conversion happening inside mitochondria." },
+  { subject:"Reading",           prompt:"Identify the main argument in the passage's second paragraph." },
+  { subject:"Vocabulary",        prompt:"Use the target word in a sentence that shows its meaning." },
+  { subject:"General Knowledge", prompt:"Name the trade routes affected by the treaty discussed in class." },
+  { subject:"Critical Thinking", prompt:"Which conclusion follows logically from the two premises?" },
+  { subject:"Problem Solving",   prompt:"Set up the equation for this two-step word problem." },
+];
+
+let featureWeights = {
+  coherence:   { name:"Semantic Coherence",        val:0.88, weight:4, enabled:true },
+  latency:     { name:"Latency (normalized)",      val:0.72, weight:3, enabled:true },
+  correctness: { name:"Prompt Correctness",        val:0.92, weight:5, enabled:true },
+  repetition:  { name:"Repetition Ratio (inverse)",val:0.12, weight:2, enabled:true, inverse:true },
+};
+
+let activeArchetype = STUDENT_ARCHETYPES[0];
+let simInterval = null, isSimulating = false, simStepCount = 0;
+let currentAttentionState = "FOCUSED";
+let smoothedBAS = 0.88;
+let cooldownUntil = 0;         // interaction # until which real interventions are suppressed
+const COOLDOWN_LENGTH = 3;     // mirrors InterventionConfig.cooldown_length default
+
+/* seeded PRNG (mulberry32) so the demo is genuinely reproducible per seed */
+let rng = mulberry32(42);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+window.addEventListener('DOMContentLoaded', () => {
+  renderArchetypes(); renderChapterNav(); loadChapter("Abstract");
+  renderWeightMatrix(); computeFormulaBAS(); onSeedChange();
 });
-document.querySelector('.tab-btn').click();
 
+/* ---------- fingerprint: REAL SHA-256 of the demo parameters ---------- */
+async function onSeedChange(){
+  const seed = document.getElementById('config-seed').value;
+  document.getElementById('val-seed').innerText = seed;
+  rng = mulberry32(parseInt(seed,10));
+  const payload = JSON.stringify({seed:parseInt(seed,10), archetype:activeArchetype.id, demo:"bas-simview-v1"});
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(payload));
+  const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  document.getElementById('fingerprint-tag').innerText = "sha256-" + hex.slice(0,8) + "…" + hex.slice(-4);
+}
+
+function updateSpeedVal(v){
+  document.getElementById('val-speed').innerText = v;
+  if (isSimulating){ clearInterval(simInterval); simInterval = setInterval(runSimulationStep, parseFloat(v)*1000); }
+}
+
+/* ---------- tabs ---------- */
+function switchTab(tabId){
+  ['sim','docs','formula'].forEach(t=>{
+    const btn = document.getElementById(`tab-btn-${t}`), content = document.getElementById(`tab-content-${t}`);
+    if (t===tabId){ btn.className="flex-1 min-w-[150px] py-2.5 px-4 text-xs font-semibold rounded-xl transition duration-150 bg-brand-accentGreen text-brand-accentGreenDark border border-[#cbdcb5]"; content.classList.remove('hidden'); }
+    else { btn.className="flex-1 min-w-[150px] py-2.5 px-4 text-xs font-semibold rounded-xl transition duration-150 text-brand-textMuted hover:text-brand-textDark"; content.classList.add('hidden'); }
+  });
+}
+
+/* ---------- archetypes ---------- */
 function renderArchetypes(){
-  document.getElementById('archetypes').innerHTML = ARCHETYPES.map(a=>`
-    <button class="arch-btn text-left p-3 rounded-xl border text-xs ${a.id===active.id?'border-[#1c1f1a] bg-[#f8faf7]':'border-[#e6ebe3] bg-white'}" data-id="${a.id}">
-      <div class="font-bold">${a.name}</div>
-      <div class="text-[10px] text-[#5d645a] mt-0.5">typical state: ${a.state}</div>
-    </button>`).join('');
-  document.querySelectorAll('.arch-btn').forEach(b=>b.addEventListener('click',()=>{
-    active = ARCHETYPES.find(a=>a.id===b.dataset.id);
-    FEATURES.forEach(f=>values[f.key]=active[f.key]);
-    renderArchetypes(); renderSliders(); compute();
-  }));
-}
-
-function renderSliders(){
-  document.getElementById('sliders').innerHTML = FEATURES.map(f=>`
-    <div class="space-y-1">
-      <div class="flex justify-between text-xs"><span class="text-[#5d645a]">${f.label}</span><span class="mono font-semibold" id="val-${f.key}">${values[f.key].toFixed(2)}</span></div>
-      <input type="range" min="0" max="1" step="0.01" value="${values[f.key]}" data-key="${f.key}" class="w-full accent-[#2c5222]">
+  document.getElementById('archetype-list').innerHTML = STUDENT_ARCHETYPES.map(a=>`
+    <div class="p-3.5 rounded-xl border cursor-pointer transition flex flex-col gap-1.5 ${a.id===activeArchetype.id?'ring-2 ring-brand-textDark bg-brand-bg border-brand-border':'border-brand-border bg-white hover:border-brand-textMuted'}" onclick="selectArchetype('${a.id}')">
+      <div class="flex justify-between items-center">
+        <span class="text-xs font-bold text-brand-textDark">${a.name}</span>
+        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border ${a.pill}">Profile</span>
+      </div>
+      <span class="text-[11px] text-brand-textMuted leading-relaxed">${a.desc}</span>
     </div>`).join('');
-  document.querySelectorAll('#sliders input').forEach(inp=>{
-    inp.addEventListener('input', e=>{
-      values[e.target.dataset.key] = parseFloat(e.target.value);
-      document.getElementById('val-'+e.target.dataset.key).innerText = values[e.target.dataset.key].toFixed(2);
-      compute();
-    });
+}
+function selectArchetype(id){
+  activeArchetype = STUDENT_ARCHETYPES.find(a=>a.id===id) || activeArchetype;
+  renderArchetypes(); resetSimulation(); transitionAttentionState(activeArchetype.homeState); onSeedChange();
+}
+
+/* ---------- docs ---------- */
+function renderChapterNav(){
+  document.getElementById('docs-chapter-nav').innerHTML = Object.keys(CHAPTER_DATA).map(k=>`
+    <button id="doc-btn-${k.replace(/[^a-zA-Z0-9]/g,'')}" class="text-left text-xs py-2 px-3 rounded-lg transition text-brand-textMuted hover:text-brand-textDark hover:bg-white" onclick="loadChapter('${k}')">${k}</button>`).join('');
+}
+function loadChapter(key){
+  const chap = CHAPTER_DATA[key];
+  Object.keys(CHAPTER_DATA).forEach(k=>{
+    const b=document.getElementById(`doc-btn-${k.replace(/[^a-zA-Z0-9]/g,'')}`);
+    if(b) b.className="text-left text-xs py-2 px-3 rounded-lg transition text-brand-textMuted hover:text-brand-textDark hover:bg-white";
+  });
+  const ab=document.getElementById(`doc-btn-${key.replace(/[^a-zA-Z0-9]/g,'')}`);
+  if(ab) ab.className="text-left text-xs py-2 px-3 rounded-lg transition bg-white text-brand-accentGreenDark border border-brand-border font-bold shadow-sm";
+  document.getElementById('docs-content-pane').innerHTML = `
+    <h4 class="text-xs font-bold uppercase tracking-wider text-brand-accentGreenDark mb-2">${chap.title}</h4>
+    <p class="text-xs text-brand-textMuted leading-relaxed">${chap.text}</p>
+    <div class="mt-6 pt-3 border-t border-brand-border text-[10px] text-brand-textMuted flex items-center justify-between">
+      <span>B.Tech Thesis · MC300 · CSE, BIT Mesra</span>
+      <span class="font-mono text-[9px] text-[#2c5222] font-semibold">repo-verified</span>
+    </div>`;
+}
+
+/* ---------- formula tab ---------- */
+function renderWeightMatrix(){
+  document.getElementById('formula-weight-matrix').innerHTML = Object.keys(featureWeights).map(key=>{
+    const f=featureWeights[key];
+    return `
+    <div class="flex items-center justify-between bg-brand-bg p-3.5 rounded-xl border border-brand-border">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" ${f.enabled?'checked':''} class="w-4 h-4 accent-[#2c5222] rounded" onchange="toggleFeature('${key}')">
+        <div>
+          <span class="text-xs font-bold text-brand-textDark block">${f.name}</span>
+          <span class="text-[10px] text-brand-textMuted">weight w = ${f.weight}${f.inverse?' · inverse polarity':''}</span>
+        </div>
+      </div>
+      <div class="text-right">
+        <span class="text-[10px] text-brand-textMuted block">e value</span>
+        <span class="text-xs font-mono font-bold text-brand-textDark">${f.val.toFixed(2)}</span>
+      </div>
+    </div>`;}).join('');
+}
+function toggleFeature(key){ featureWeights[key].enabled=!featureWeights[key].enabled; computeFormulaBAS(); renderWeightMatrix(); }
+function rawBAS(){
+  let W=0,E=0;
+  Object.values(featureWeights).forEach(f=>{
+    if(!f.enabled) return;
+    const e=f.inverse?1-f.val:f.val;
+    W+=f.weight; E+=f.weight*e;
+  });
+  return W>0?Math.min(Math.max(E/W,0),1):0;
+}
+function computeFormulaBAS(){ document.getElementById('formula-bas-out').innerText = rawBAS().toFixed(2); }
+
+/* ---------- simulation arena ---------- */
+function transitionAttentionState(s){
+  ["FOCUSED","DISTRACTED","IMPULSIVE"].forEach(x=>{
+    const n=document.getElementById(`node-${x}`);
+    n.className = x===s
+      ? "bg-white border-2 border-brand-textDark rounded-xl p-4 flex flex-col items-center text-center transition-all duration-300 scale-105 shadow-sm"
+      : "bg-brand-bg border border-brand-border rounded-xl p-4 flex flex-col items-center text-center transition-all duration-300 opacity-50";
+  });
+  currentAttentionState=s;
+}
+
+function toggleSimulation(){
+  const btn=document.getElementById('btn-toggle-sim');
+  if(isSimulating){
+    clearInterval(simInterval); isSimulating=false;
+    btn.innerHTML=`<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Start Live Stream`;
+    btn.className="flex-1 py-3 px-4 bg-brand-textDark text-white hover:bg-brand-textMuted font-bold rounded-full text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-sm";
+  } else {
+    isSimulating=true;
+    simInterval=setInterval(runSimulationStep, parseFloat(document.getElementById('config-speed').value)*1000);
+    btn.innerHTML=`<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause Stream`;
+    btn.className="flex-1 py-3 px-4 bg-[#7d1212] text-white hover:bg-[#9a1a1a] font-bold rounded-full text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-sm";
+  }
+}
+
+function resetSimulation(){
+  if(isSimulating) toggleSimulation();
+  simStepCount=0; smoothedBAS=0.88; cooldownUntil=0;
+  document.getElementById('interaction-feed-list').innerHTML=`<div class="text-brand-textMuted italic text-center pt-20">Click "Start Live Stream" to generate synthetic behaviour logs.</div>`;
+  document.getElementById('intervention-log-list').innerHTML=`<div class="text-brand-textMuted italic text-center pt-20 font-sans">Awaiting behaviour streams to run intervention scoring…</div>`;
+  ["latency","coherence","bas","reward"].forEach(k=>{
+    document.getElementById(`stat-${k}`).innerText="0.00";
+    document.getElementById(`stat-bar-${k}`).style.width="0%";
   });
 }
 
-function compute(){
-  let wsum=0, esum=0;
-  FEATURES.forEach(f=>{
-    const e = f.inverse ? 1 - values[f.key] : values[f.key];
-    wsum += f.weight; esum += f.weight*e;
-  });
-  const bas = Math.min(1, Math.max(0, esum/wsum));
-  const perf = values.correctness*0.6;
-  const behav = (values.engagement*0.5) - (values.fatigue*0.3);
-  const cost = 0.0;
+function runSimulationStep(){
+  simStepCount++;
+  const r=rng(); const a=activeArchetype;
+  let latency, coherence, correctness, repetition, engagement, fatigue;
+
+  if(a.id==="focused"){
+    transitionAttentionState("FOCUSED");
+    latency=a.baseLatency + r*0.3; coherence=a.baseCoherence - r*0.08;
+    correctness=0.90+r*0.08; repetition=r*0.05; engagement=0.88; fatigue=0.08+simStepCount*0.005;
+  } else if(a.id==="fatigued"){
+    const fatigueLoad=Math.min(0.85, 0.15+simStepCount*0.06);
+    if(simStepCount>3 && r>0.55-fatigueLoad*0.3){
+      transitionAttentionState("DISTRACTED");
+      latency=a.baseLatency + simStepCount*0.12 + r*0.7; coherence=a.baseCoherence-0.20;
+      correctness=0.55; repetition=0.12; engagement=0.45; fatigue=fatigueLoad;
+    } else {
+      transitionAttentionState("FOCUSED");
+      latency=a.baseLatency + r*0.3; coherence=a.baseCoherence - r*0.1;
+      correctness=0.78; repetition=0.04; engagement=0.65; fatigue=fatigueLoad;
+    }
+  } else if(a.id==="distractible"){
+    if(r>0.5){
+      transitionAttentionState("DISTRACTED");
+      latency=2.1 + r*2.2; coherence=0.45+r*0.1; correctness=0.45; repetition=0.18; engagement=0.38; fatigue=0.3;
+    } else {
+      transitionAttentionState("FOCUSED");
+      latency=1.1 + r*0.8; coherence=0.78; correctness=0.82; repetition=0.04; engagement=0.7; fatigue=0.25;
+    }
+  } else if(a.id==="impulsive"){
+    transitionAttentionState("IMPULSIVE");
+    latency=0.25 + r*0.35; coherence=0.28+r*0.08; correctness=0.35; repetition=0.48+r*0.28; engagement=0.5; fatigue=0.2;
+  } else { /* recovering */
+    const recovered = simStepCount>4 && cooldownUntil>0; // intervention applied earlier ⇒ benefit
+    if(recovered && r>0.35){
+      transitionAttentionState("FOCUSED");
+      latency=1.2+r*0.4; coherence=0.74; correctness=0.75; repetition=0.06; engagement=0.68; fatigue=0.25;
+    } else if(r>0.5){
+      transitionAttentionState("DISTRACTED");
+      latency=1.9+r*1.2; coherence=0.5; correctness=0.5; repetition=0.14; engagement=0.45; fatigue=0.3;
+    } else {
+      transitionAttentionState("FOCUSED");
+      latency=1.5+r*0.5; coherence=0.62; correctness=0.62; repetition=0.08; engagement=0.55; fatigue=0.28;
+    }
+  }
+
+  /* update the shared evidence values so the formula tab stays in sync */
+  featureWeights.coherence.val=coherence;
+  featureWeights.latency.val=Math.max(0, 1 - latency/4.5);
+  featureWeights.correctness.val=correctness;
+  featureWeights.repetition.val=repetition;
+  renderWeightMatrix(); computeFormulaBAS();
+
+  /* BAS with EMA smoothing (same shape as Module 9's smoother) */
+  const raw=rawBAS();
+  smoothedBAS = 0.35*raw + 0.65*smoothedBAS;
+
+  /* Reward: R = perf + behav − cost (Module 10 decomposition, demo weights) */
+  const perf = correctness*0.6;
+  const behav = engagement*0.5 - fatigue*0.3;
+  const interventionFired = decideIntervention(latency, repetition, engagement, fatigue);
+  const cost = interventionFired ? 0.10 : 0.0;
   const reward = perf + behav - cost;
-  document.getElementById('out-bas').innerText = bas.toFixed(2);
-  document.getElementById('out-reward').innerText = reward.toFixed(2);
-  document.getElementById('out-state').innerText = active.state;
+
+  /* paint metrics */
+  document.getElementById('stat-latency').innerText=latency.toFixed(2);
+  document.getElementById('stat-bar-latency').style.width=`${Math.min(100,(latency/4.5)*100)}%`;
+  document.getElementById('stat-coherence').innerText=coherence.toFixed(2);
+  document.getElementById('stat-bar-coherence').style.width=`${coherence*100}%`;
+  document.getElementById('stat-bas').innerText=smoothedBAS.toFixed(2);
+  document.getElementById('stat-bar-bas').style.width=`${smoothedBAS*100}%`;
+  document.getElementById('stat-reward').innerText=(reward>0?'+':'')+reward.toFixed(2);
+  document.getElementById('stat-bar-reward').style.width=`${Math.min(100,Math.abs(reward)*100)}%`;
+
+  /* trace feed */
+  const feed=document.getElementById('interaction-feed-list');
+  if(simStepCount===1) feed.innerHTML="";
+  const p=CURRICULUM_PROMPTS[Math.floor(r*CURRICULUM_PROMPTS.length)]||CURRICULUM_PROMPTS[0];
+  const ts=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  let badge="bg-[#e1f5d6] text-[#2c5222] border-[#cbdcb5]";
+  if(currentAttentionState==="DISTRACTED") badge="bg-amber-500/10 text-amber-600 border-amber-200";
+  if(currentAttentionState==="IMPULSIVE") badge="bg-rose-500/10 text-rose-600 border-rose-200";
+  feed.innerHTML = `
+    <div class="bg-brand-bg p-3 rounded-xl border border-brand-border flex flex-col gap-1.5 animate-fadeIn">
+      <div class="flex justify-between items-center text-[10px]">
+        <span class="text-brand-textMuted font-mono">${ts} · #${simStepCount}</span>
+        <span class="px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ${badge}">${currentAttentionState}</span>
+      </div>
+      <div class="text-[11px] text-brand-textDark"><strong class="text-brand-textMuted">[${p.subject}]</strong> ${p.prompt}</div>
+    </div>` + feed.innerHTML;
 }
 
-function renderPolicies(){
-  document.getElementById('policy-list').innerHTML = POLICIES.map(([n,d])=>`
-    <div class="bg-[#f8faf7] border border-[#e6ebe3] rounded-xl p-3">
-      <div class="font-bold text-[#1c1f1a]">${n}</div>
-      <div class="text-[10px] text-[#5d645a] mt-0.5">${d}</div>
-    </div>`).join('');
-}
+/* rule-based policy selection mirroring Module 11's eligibility conditions + cooldown */
+function decideIntervention(latency, repetition, engagement, fatigue){
+  const log=document.getElementById('intervention-log-list');
+  if(simStepCount===1) log.innerHTML="";
+  const ts=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const correctness=featureWeights.correctness.val;
 
-FEATURES.forEach(f=>values[f.key]=active[f.key]);
-renderArchetypes(); renderSliders(); renderPolicies(); compute();
+  let policy=null, msg="", cls="text-brand-accentGreenDark";
+  if(simStepCount<=cooldownUntil){
+    msg=`<span class="text-brand-textMuted font-bold">[COOLDOWN]</span> Real interventions suppressed until interaction #${cooldownUntil+1}.`;
+  } else if(fatigue>0.6){
+    policy="Break Recommendation"; cls="text-[#0284c7]";
+    msg=`<span class="${cls} font-bold">[BREAK]</span> Fatigue ${fatigue.toFixed(2)} &gt; 0.60 → <strong>Break Recommendation</strong>`;
+  } else if(repetition>0.40){
+    policy="Question Reframing"; cls="text-rose-600";
+    msg=`<span class="${cls} font-bold">[REFRAME]</span> Repetition ${repetition.toFixed(2)} &gt; 0.40 → <strong>Question Reframing</strong>`;
+  } else if(correctness<0.5 && engagement>=0.4){
+    policy="Hint"; cls="text-amber-600";
+    msg=`<span class="${cls} font-bold">[HINT]</span> Correctness ${correctness.toFixed(2)} &lt; 0.50, engagement OK → <strong>Hint</strong>`;
+  } else if(engagement<0.4 && correctness>=0.5){
+    policy="Motivational Prompt"; cls="text-[#6b21a8]";
+    msg=`<span class="${cls} font-bold">[MOTIVATE]</span> Engagement ${engagement.toFixed(2)} &lt; 0.40 → <strong>Motivational Prompt</strong>`;
+  } else if(smoothedBAS<0.55){
+    policy="Difficulty Reduction"; cls="text-brand-textDark";
+    msg=`<span class="font-bold">[DIFFICULTY]</span> Smoothed BAS ${smoothedBAS.toFixed(2)} &lt; 0.55 → <strong>Difficulty Reduction</strong>`;
+  } else {
+    msg=`<span class="text-brand-accentGreenDark font-bold">[STEADY]</span> No Intervention — signals within stable bounds.`;
+  }
+
+  if(policy){ cooldownUntil=simStepCount+COOLDOWN_LENGTH; }
+
+  log.innerHTML=`
+    <div class="p-3 bg-brand-bg border border-brand-border rounded-xl animate-fadeIn">
+      <div class="text-[10px] text-brand-textMuted mb-1">${ts} · interaction #${simStepCount}</div>
+      <p class="leading-relaxed text-brand-textDark">${msg}</p>
+    </div>` + log.innerHTML;
+  return policy!==null;
+}
 </script>
 </body>
 </html>
