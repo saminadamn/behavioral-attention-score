@@ -57,14 +57,17 @@ dataset_generator/
     config/          # GeneratorConfig, defaults, fingerprinting
     models/          # Student, Prompt, Response, Session, Dataset schemas
     generators/       # Student, prompt, response, behavior, session generation
+    pipeline/         # Dataset assembly, validation, statistics, export
     classifier/       # Attention-state classifier
     bas/              # Behavioral Attention Score engine
     reward/           # Reward model
     intervention/      # Intervention engine
     orchestration/     # LangGraph workflow
+    evaluation/        # Benchmarks, ablations, sensitivity sweeps
 
 tests/    # Unit, integration, and stress tests
 docs/     # Architecture, pipeline, orchestration, API, testing, design notes
+web/      # Single-page interactive demo (open web/index.html)
 ```
 
 ## Installation
@@ -147,6 +150,7 @@ See `docs/TESTING.md` for full coverage details and current runtimes.
 - `docs/ARCHITECTURE.md` — per-module design and tradeoffs
 - `docs/PIPELINE.md` — end-to-end data flow
 - `docs/ORCHESTRATION.md` — LangGraph workflow, checkpointing, and recovery
+- `docs/EVALUATION.md` — benchmarks, ablations, and sensitivity analysis
 - `docs/API.md` — public API reference
 - `docs/TESTING.md` — test philosophy and coverage
 - `docs/DESIGN_DECISIONS.md` — engineering decisions and alternatives considered
