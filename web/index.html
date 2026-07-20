@@ -74,7 +74,8 @@ body { background:#f8faf7; font-family:'Plus Jakarta Sans',sans-serif; color:#1c
       <p class="text-sm md:text-base text-brand-textMuted leading-relaxed">
         Behavioral Attention Score (BAS) is a deterministic multi-agent pipeline for adaptive learning
         research: a synthetic dataset generator, an explainable attention score, a decomposed reward
-        signal, a rule-based intervention planner, and a LangGraph orchestration layer. This page mirrors
+        signal, a rule-based intervention planner, a LangGraph orchestration layer, and an evaluation
+        framework (benchmarks, ablations, sensitivity sweeps). This page mirrors
         the documented behaviour of the real Python engine in
         <a class="font-mono bg-brand-bg text-brand-textDark px-1.5 py-0.5 rounded border border-brand-border underline decoration-dotted" href="https://github.com/saminadamn/behavioral-attention-score" target="_blank">behavioral-attention-score</a>.
       </p>
@@ -95,8 +96,8 @@ body { background:#f8faf7; font-family:'Plus Jakarta Sans',sans-serif; color:#1c
       <div class="grid grid-cols-2 gap-4">
         <div class="bg-white p-4 rounded-xl border border-brand-border">
           <span class="text-xs text-brand-textMuted block">Pytest Inventory</span>
-          <span class="text-2xl font-bold text-brand-textDark font-mono">385</span>
-          <span class="text-[10px] text-brand-accentGreenDark block font-medium">✓ Tests Passing (12 modules)</span>
+          <span class="text-2xl font-bold text-brand-textDark font-mono">404</span>
+          <span class="text-[10px] text-brand-accentGreenDark block font-medium">✓ Tests Passing (13 modules)</span>
         </div>
         <div class="bg-white p-4 rounded-xl border border-brand-border">
           <span class="text-xs text-brand-textMuted block">Classifier Accuracy</span>
@@ -377,7 +378,7 @@ const CHAPTER_DATA = {
   "Ch 3: Methodology": { title: "Methodology and Implementation",
     text: "GeneratorConfig is the control plane: profile distribution, class balance, transition matrices, curriculum, response/behaviour settings, session controls. Five profile classes are factory-registered rather than dispatched through a conditional chain. The prompt generator draws from a seven-subject curriculum; the response generator derives lexical diversity, semantic similarity, sentiment, repetition, coherence and engagement from the composed text itself. BAS = clip(Σw·e/Σw) with missing-feature renormalization, then per-session temporal smoothing. Reward decomposes exactly as R = performance + behaviour − cost. The intervention planner is deterministic and rule-based — need detection, eligibility, scoring, cooldown — never a trained RL policy." },
   "Ch 4: Verification": { title: "Verification, Results and Discussion",
-    text: "385 pytest tests across twelve modules, including 100,000+-scale stress tests per module and dedicated determinism, leakage and serialization checks. No classifier accuracy is published — the repository ships training infrastructure, not a benchmark run, and fabricating figures would be misleading. The strongest result is architectural: a typed, composable, inspectable path from synthetic learner profile to downstream decision artifacts." },
+    text: "404 pytest tests across thirteen modules, including 100,000+-scale stress tests per module and dedicated determinism, leakage and serialization checks. Module 13 adds an evaluation framework: per-module benchmarks (runtime, CPU, peak memory, throughput), one-at-a-time ablations reusing each engine's own config helpers, and parameter-sensitivity sweeps — e.g. the need-threshold sweep quantifies a real calibration cliff (45 → 4 → 0 threshold-clearing decisions across 0.05/0.15/0.25). No classifier accuracy is published — the repository ships training infrastructure, not a benchmark run, and fabricating figures would be misleading." },
 };
 
 const STUDENT_ARCHETYPES = [
