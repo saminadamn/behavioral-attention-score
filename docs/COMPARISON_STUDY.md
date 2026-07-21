@@ -84,6 +84,26 @@ number of random draws per interaction (the built-in heuristic calls
 shifts later sessions' length draws. Reported statistics are per-record
 means, which stay valid and comparable despite this.
 
+### On Random Policy's slightly higher BAS mean
+
+A representative run (30 students × 3 sessions, seed 42) measured
+Rule-Based BAS mean 0.7196 against Random Policy BAS mean 0.7237 — Random
+*numerically* higher. Taken at face value this looks backwards: why would
+randomly-timed interventions outscore the engagement-triggered heuristic?
+
+Checked directly rather than left as an eyeballed gap: a Welch's t-test
+between the two policies' per-record BAS distributions (n≈2,690 vs.
+n≈2,647) gives $t = 2.04$, $p = 0.042$ — technically below the
+conventional 0.05 threshold — but Cohen's $d = 0.056$, an order of
+magnitude below the conventional "small effect" cutoff of 0.2. This is
+the standard large-sample-size trap: with ~2,700 observations per group,
+even a practically negligible difference in means becomes statistically
+"detectable." The honest reading is that Random and Rule-Based produce
+**indistinguishable mean BAS at this scale and configuration** — not that
+randomly-timed intervention outperforms the engagement-triggered
+heuristic. Reported this way rather than as an unqualified "Random scores
+higher," which the raw numbers alone would misleadingly suggest.
+
 ## Phase 3 — RL Evaluation
 
 `rl_evaluation_table.csv` compares the rule-based reference against seven

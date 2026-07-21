@@ -139,7 +139,7 @@ body { background:#f8faf7; font-family:'Plus Jakarta Sans',sans-serif; color:#1c
         <thead>
           <tr class="border-b border-brand-border text-brand-textMuted text-xs uppercase tracking-wide">
             <th class="py-2 pr-4">Model</th>
-            <th class="py-2 pr-4">Learns to copy the rule engine?</th>
+            <th class="py-2 pr-4">Stays within the logged policy's behavior?</th>
             <th class="py-2 pr-4">Agreement with logged decisions</th>
           </tr>
         </thead>
@@ -151,22 +151,22 @@ body { background:#f8faf7; font-family:'Plus Jakarta Sans',sans-serif; color:#1c
           </tr>
           <tr class="border-b border-brand-border/60">
             <td class="py-2 pr-4">Vanilla DQN</td>
-            <td class="py-2 pr-4 text-brand-textMuted">Barely</td>
+            <td class="py-2 pr-4 text-brand-textMuted">Extrapolates away from it</td>
             <td class="py-2 pr-4 font-mono">~3%</td>
           </tr>
           <tr class="border-b border-brand-border/60">
             <td class="py-2 pr-4">Double DQN + PER + LSTM (DRQN)</td>
-            <td class="py-2 pr-4 text-brand-textMuted">Barely</td>
+            <td class="py-2 pr-4 text-brand-textMuted">Extrapolates away from it</td>
             <td class="py-2 pr-4 font-mono">~4%</td>
           </tr>
           <tr class="border-b border-brand-border/60">
             <td class="py-2 pr-4">Conservative Q-Learning (CQL)</td>
-            <td class="py-2 pr-4 text-brand-accentGreenDark font-semibold">Much closer</td>
+            <td class="py-2 pr-4 text-brand-accentGreenDark font-semibold">Stays close by design</td>
             <td class="py-2 pr-4 font-mono">~86%</td>
           </tr>
           <tr>
             <td class="py-2 pr-4">Constrained BCQ</td>
-            <td class="py-2 pr-4 text-brand-accentGreenDark font-semibold">Much closer</td>
+            <td class="py-2 pr-4 text-brand-accentGreenDark font-semibold">Stays close by design</td>
             <td class="py-2 pr-4 font-mono">~87%</td>
           </tr>
         </tbody>
@@ -174,11 +174,11 @@ body { background:#f8faf7; font-family:'Plus Jakarta Sans',sans-serif; color:#1c
     </div>
     <div class="bg-brand-accentGreen/40 border border-[#cbdcb5] rounded-xl p-4 mt-4">
       <p class="text-sm leading-relaxed">
-        <strong class="text-brand-accentGreenDark">This low number is a finding, not a failure.</strong>
-        A plain network trained this way barely resembles the rule engine's decisions — because most logged interactions
-        needed no help at all, so it never really learns what "no help needed" looks like. Add a technique that makes the
-        network cautious about guessing (CQL, BCQ), and agreement jumps dramatically. That jump is itself evidence the
-        caution mechanism is working exactly as intended.
+        <strong class="text-brand-accentGreenDark">The story here isn't "CQL and BCQ perform better."</strong>
+        It's that a plain offline network is free to extrapolate to actions it barely saw in the logs — so it drifts far
+        from what the rule engine actually did. CQL and BCQ are specifically built to stay close to the logged behavior
+        policy instead of extrapolating, and their much higher agreement is evidence that constraint is working — not
+        proof that a conservative network would make better decisions than the rule engine.
       </p>
     </div>
   </section>
