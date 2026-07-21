@@ -30,7 +30,7 @@ Real classroom data is hard to collect because of privacy and ethical constraint
 - **Decomposed reward model** — performance, behavior, and intervention cost are tracked separately so each can be analyzed or ablated independently.
 - **Rule-based intervention engine** — eight policies (hints, concept review, difficulty reduction, motivational prompts, breaks, encouragement, question reframing, no intervention), each with a traceable trigger reason. Not a trained RL policy — see `docs/EXPERIMENTAL_DQN.md` for why, backed by an actual offline-DQN prototype rather than an assertion.
 - **LangGraph orchestration** — the pipeline runs as a checkpointable, resumable workflow.
-- **Stress-tested** with datasets of 100,000+ interactions, alongside a full unit and integration test suite.
+- **Stress-tested** with datasets of 100,000+ interactions, alongside a full unit and integration test suite (471 tests).
 
 ## What's here
 
@@ -64,11 +64,19 @@ dataset_generator/
     intervention/      # Intervention engine
     orchestration/     # LangGraph workflow
     evaluation/        # Benchmarks, ablations, sensitivity sweeps
-    rl_experimental/   # Offline Double DQN + PER + LSTM prototype (not used by default)
+    rl_experimental/   # Offline Double DQN + PER + LSTM prototype, plus
+                       #   offline/ (CQL, IQL, Discrete BCQ) — not used by default
+    experiment_reproducibility.py   # Global seeding, package/version logging
+    experiment_appendix.py          # Multi-seed stats, significance tests, error analysis
+
+run_experiment.py          # One-command pipeline + figures/reports (outputs/)
+run_comparison_study.py    # Reproducibility, baselines, RL, deep learning (outputs_comparison/)
+run_appendix_analysis.py   # Ablation, sensitivity, seeds, significance, errors (outputs_appendix/)
 
 tests/    # Unit, integration, and stress tests
 docs/     # Architecture, pipeline, orchestration, API, testing, design notes
-web/      # Single-page interactive demo (open web/index.html)
+web/      # index.html (interactive demo), dashboard.html (real-engine
+          #   dashboard), experimental_rl.html (offline-RL explainer)
 ```
 
 ## Installation
@@ -81,7 +89,7 @@ source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Requires Python 3.10+. Core dependencies: `pydantic`, `numpy`, `pandas`, `scipy`, `scikit-learn`, `langgraph`.
+Requires Python 3.10+. Core dependencies: `pydantic`, `numpy`, `pandas`, `scipy`, `scikit-learn`, `langgraph`, `matplotlib`.
 
 ## Quick Start
 
@@ -138,10 +146,23 @@ python run_comparison_study.py --students 40 --sessions 3
 writes `outputs_comparison/<timestamp>/{reproducibility.json,
 baseline_policy_table.csv, rl_evaluation_table.csv,
 classifier_comparison_table.csv, models/}`. See `docs/COMPARISON_STUDY.md`
-and `docs/DEEP_LEARNING_COMPARISON.md` for the full writeup, and
-`docs/PHASE_ROADMAP.md` for what's scoped but not yet built (ablation
-studies, hyperparameter sweeps, multi-seed statistical significance,
-Transformer, and beyond).
+and `docs/DEEP_LEARNING_COMPARISON.md` for the full writeup.
+
+`run_appendix_analysis.py` covers the thesis appendix (ablation study,
+reward-weight sensitivity, multi-seed statistics, significance testing,
+and confusion-matrix error analysis):
+
+```bash
+python run_appendix_analysis.py --students 30 --sessions 3
+```
+
+writes `outputs_appendix/<timestamp>/{ablation_table.csv,
+sensitivity_need_threshold.csv, sensitivity_reward_weight.csv,
+seed_analysis.csv, significance_tests.csv, confusion_full_features.csv,
+confusion_restricted_features.csv, error_analysis.md}`. See
+`docs/APPENDIX_ANALYSIS.md` for the full writeup, and
+`docs/PHASE_ROADMAP.md` for what's still scoped but not built
+(hyperparameter grid sweeps, Transformer, and beyond).
 
 ## Example Usage
 
@@ -210,7 +231,8 @@ See `docs/TESTING.md` for full coverage details and current runtimes.
 - `docs/RL_FORMALIZATION.md` — formal MDP/Bellman/Double-DQN/PER/LSTM/CQL/IQL/BCQ notation, a worked reward calculation, and references for the hand-set reward weights
 - `docs/COMPARISON_STUDY.md` — reproducibility, real causal baseline-policy comparison, and RL evaluation tables
 - `docs/DEEP_LEARNING_COMPARISON.md` — Logistic Regression/Random Forest/MLP/LSTM classifier comparison
-- `docs/PHASE_ROADMAP.md` — ablation studies, hyperparameter sweeps, and statistical significance: scoped, not yet built
+- `docs/APPENDIX_ANALYSIS.md` — ablation study, reward-weight sensitivity, multi-seed statistics, significance testing, and confusion-matrix error analysis
+- `docs/PHASE_ROADMAP.md` — hyperparameter grid sweeps, Transformer, and beyond: scoped, not yet built
 - `docs/API.md` — public API reference
 - `docs/TESTING.md` — test philosophy and coverage
 - `docs/DESIGN_DECISIONS.md` — engineering decisions and alternatives considered
@@ -219,8 +241,9 @@ See `docs/TESTING.md` for full coverage details and current runtimes.
 
 - Public dataset release (CSV/JSONL/Parquet + manifest)
 - Persistent (SQLite-backed) checkpointing for cross-process resume
-- Lightweight dashboard over intervention and workflow reports
-- Expanded ablation-study tooling
+- Full hyperparameter grid sweeps and a Transformer sequence encoder (`docs/PHASE_ROADMAP.md`)
+- Off-policy evaluation for CQL/IQL/BCQ against the rule engine on expected return, not just action agreement
+- Real, ethically-governed classroom data as a prerequisite for any deployment claim beyond simulation
 
 ## License
 

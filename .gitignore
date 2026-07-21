@@ -7,3 +7,4 @@ outputs/
 outputs_comparison/
 *.egg-info/
 .DS_Store
+outputs_appendix/

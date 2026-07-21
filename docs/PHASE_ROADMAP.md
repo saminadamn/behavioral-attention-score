@@ -1,27 +1,13 @@
-# Phase Roadmap: 5-10 (Not Yet Implemented)
+# Phase Roadmap: 6, 10 (Not Yet Implemented)
 
 Phases 1-4 (reproducibility, baseline comparison, RL evaluation, deep
 learning comparison) are implemented and documented in
 `docs/COMPARISON_STUDY.md` and `docs/DEEP_LEARNING_COMPARISON.md`. Phases
-5-10 below are scoped but **not built** — building all of them at the same
-rigor as Phases 1-4 (real runs, verified mechanisms, no placeholder
-numbers) is a substantially larger effort than one pass, and attempting a
-thin version of each would risk exactly the kind of shallow, unverified
-result this project has avoided everywhere else. Each is described here
-with what it would take and what already exists to build it on.
-
-## Phase 5 — Ablation Study
-
-**What exists to build on:** the DQN family's three toggles
-(`use_double_dqn`, `use_prioritized_replay`, `sequence_length=1` vs `>1`)
-already let `run_comparison_study.py`'s Phase 3 loop run as an ablation
-ladder — that mechanism just needs a "remove BAS," "remove EMA smoothing,"
-"remove reward function" axis added, each of which already has an ablation
-primitive in Module 13 (`dataset_generator/evaluation/ablation.py`:
-`disable_bas_feature_category`, `disable_temporal_smoothing`,
-`RewardConfig.with_category_disabled`). The work remaining is wiring those
-existing Module 13 ablations into a table alongside the RL-side ablations,
-not building new ablation mechanisms.
+5, 7, 8, and 9 are implemented and documented in `docs/APPENDIX_ANALYSIS.md`
+(`run_appendix_analysis.py`). Phase 6 (full hyperparameter grid) and
+Phase 10 (Transformer and beyond) remain scoped but **not built** — each
+is described here with what it would take and what already exists to
+build it on.
 
 ## Phase 6 — Hyperparameter Study
 
@@ -35,40 +21,16 @@ sweep 3-4 values of the two or three parameters likely to matter most
 `SensitivityRunner` pattern (`docs/EVALUATION.md`), one-at-a-time, and
 report the resulting curves — not a fabricated full-grid table.
 
-## Phase 7 — Random Seed Analysis
-
-**What it needs:** re-running Phase 3's RL evaluation across multiple
-seeds (e.g. 42, 123, 2025, 2026, 9999) and reporting mean/standard
-deviation/confidence interval per metric per algorithm. Mechanically
-straightforward given Phases 1-3 already exist — `DQNConfig`/offline
-configs already accept `seed`, and `run_comparison_study.py`'s per-model
-loop just needs an outer seed loop and an aggregation step. Not done here
-because five full training runs per algorithm (7 algorithms × 5 seeds = 35
-runs) meaningfully changes the runtime of a single invocation and deserves
-its own script rather than being folded into Phase 3's loop.
-
-## Phase 8 — Statistical Significance
-
-**What it needs:** given Phase 7's multi-seed results, `scipy.stats`
-(already a dependency) provides `ttest_rel` (paired t-test),
-`wilcoxon` (Wilcoxon signed-rank), and Cohen's d is a direct formula
-(`(mean_a - mean_b) / pooled_std`) over the same paired seed results.
-This is a direct consumer of Phase 7's output, not new infrastructure —
-sequencing it after Phase 7 (rather than before) is the only reason it
-isn't built yet.
-
 ## Phase 9 — Visualizations
 
-**Partially covered already.** `run_experiment.py` (the classifier-focused
-entry point) already produces confusion matrix, ROC curve,
-precision-recall curve, calibration curve, feature importance, BAS
-histogram, attention-state distribution, and intervention distribution as
-real matplotlib PNGs. Not yet built for *this* comparison study
-specifically: training-loss curves and reward curves per RL algorithm
-(trivial — `loss_per_epoch` is already returned by every trainer in
-`rl_experimental`, plotting it is a few lines) and the transition heatmap
-(also already built in `run_experiment.py`, just needs pointing at
-whichever dataset a given comparison run used).
+**Mostly covered.** `run_experiment.py` produces confusion matrix, ROC
+curve, precision-recall curve, calibration curve, feature importance, BAS
+histogram, attention-state distribution, intervention distribution, and
+transition heatmap as real matplotlib PNGs. `run_appendix_analysis.py`
+adds the confusion matrices for the deliberately-restricted-feature error
+case. Not yet built: training-loss/reward curves plotted per RL algorithm
+(the data — `loss_per_epoch` — already exists on every trainer's artifact;
+only the plotting call is missing).
 
 ## Phase 10 — Future Deep Learning
 
