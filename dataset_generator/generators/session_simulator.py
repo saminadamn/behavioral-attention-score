@@ -23,6 +23,9 @@ directly).
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import Callable
+
 import numpy as np
 
 from dataset_generator.config import GeneratorConfig
@@ -45,6 +48,26 @@ from dataset_generator.models.student import Student
 from dataset_generator.validators.session_validator import validate_session
 
 
+@dataclass(frozen=True)
+class InterventionDecisionInput:
+    """Everything available *before* an interaction is generated, when the
+    intervention decision for it must be made — never anything derived from
+    the interaction itself (that would be a lookahead a real tutor doesn't
+    have). Exists so an injected policy sees a typed, documented signal set
+    instead of a bag of positional floats.
+    """
+
+    interaction_number: int
+    session_length: int
+    rolling_engagement: float
+    rolling_latency: float | None
+    previous_fatigue: float
+    previous_attention_state: AttentionState | None
+
+
+InterventionPolicy = Callable[[InterventionDecisionInput], bool]
+
+
 class SessionSimulator:
     """Simulates one complete session for one student.
 
@@ -62,6 +85,7 @@ class SessionSimulator:
         behaviour_generator: BehaviourGenerator,
         transition_engine: TransitionEngine,
         rng: np.random.Generator,
+        intervention_policy: InterventionPolicy | None = None,
     ) -> None:
         self._config = config
         self._prompt_generator = prompt_generator
@@ -69,6 +93,13 @@ class SessionSimulator:
         self._behaviour_generator = behaviour_generator
         self._transition_engine = transition_engine
         self._rng = rng
+        # None (the default) reproduces every existing call site's behavior
+        # exactly — `_decide_intervention`'s own heuristic, unchanged. A
+        # policy is only ever substituted by a caller that explicitly wants
+        # a live, causal comparison (see dataset_generator.rl_experimental
+        # .baselines and docs/OFFLINE_RL.md) — not by anything in the
+        # default pipeline.
+        self._intervention_policy = intervention_policy
 
     def simulate_session(self, student: Student, session_id: str) -> SessionRecord:
         """Simulate one full session for `student`, returning a `SessionRecord`."""
@@ -93,7 +124,18 @@ class SessionSimulator:
         previous_fatigue = 0.0
 
         for interaction_number in range(1, session_length + 1):
-            intervention_applied = self._decide_intervention(rolling_engagement)
+            if self._intervention_policy is None:
+                intervention_applied = self._decide_intervention(rolling_engagement)
+            else:
+                decision_input = InterventionDecisionInput(
+                    interaction_number=interaction_number,
+                    session_length=session_length,
+                    rolling_engagement=rolling_engagement,
+                    rolling_latency=rolling_latency,
+                    previous_fatigue=previous_fatigue,
+                    previous_attention_state=previous_attention_state,
+                )
+                intervention_applied = self._intervention_policy(decision_input)
 
             prompt = self._prompt_generator.generate_prompt()
             session_context = SessionContext(

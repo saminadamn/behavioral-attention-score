@@ -176,7 +176,101 @@ to act in. This is why `docs/EXPERIMENTAL_DQN.md` reports
 $Q_\theta$'s real-world value — under a fixed behavior policy, actions
 $\mu$ rarely or never took are exactly where $Q_\theta$'s estimates are
 least constrained by data (Fujimoto et al., 2019 formalize this as
-*extrapolation error* in batch RL).
+*extrapolation error* in batch RL). Sections 1.7-1.9 formalize the three
+algorithms in `dataset_generator.rl_experimental.offline` built specifically
+to address this — see `docs/OFFLINE_RL.md` for the accompanying discussion
+and measured effects.
+
+### 1.7 Conservative Q-Learning (CQL)
+
+The discrete-action CQL(H) objective (Kumar, Zhou, Tucker & Levine, 2020,
+Eq. 4) adds a penalty to the ordinary TD loss:
+
+$$
+\mathcal{L}_{\text{CQL}}(\theta) = \alpha \cdot \mathbb{E}_s\!\left[
+\log\sum_{a} \exp Q_\theta(s,a) \;-\; Q_\theta(s, a_{\text{logged}})
+\right] + \mathcal{L}_{\text{TD}}(\theta)
+$$
+
+The bracketed term is a lower bound on $\max_a Q_\theta(s,a) - Q_\theta(s,
+a_{\text{logged}})$ (by the standard log-sum-exp $\geq$ max inequality),
+so minimizing it pushes $Q_\theta(s, a_{\text{logged}})$ up and/or every
+other $Q_\theta(s,a)$ down — with no other information about those other
+actions, the penalty defaults to pushing them down, which is exactly the
+conservative (pessimistic, not merely uncertain) property the paper proves.
+Its gradient with respect to $Q_\theta(s,a')$ is
+
+$$
+\nabla_{Q(s,a')} \Big[\log\sum_a \exp Q(s,a) - Q(s,a_{\text{logged}})\Big]
+= \text{softmax}\big(Q(s,\cdot)\big)_{a'} - \mathbb{1}[a' = a_{\text{logged}}]
+$$
+
+implemented exactly as written in `cql.py::CQLAgent.train_on_batch`
+(`grad_q_cql`), added to the ordinary Double-DQN TD gradient before the one
+shared `apply_output_gradient` backward pass.
+
+### 1.8 Implicit Q-Learning (IQL)
+
+Kostrikov, Nair & Levine (2021) fit a state-value function via **expectile
+regression** — the asymmetric-squared-error analogue of a quantile, but
+differentiable everywhere:
+
+$$
+\mathcal{L}_V(\psi) = \mathbb{E}_{(s,a)\sim\mathcal{D}}\Big[
+L_2^\tau\big(Q_{\bar\theta}(s,a) - V_\psi(s)\big)\Big], \qquad
+L_2^\tau(u) = |\tau - \mathbb{1}[u<0]|\cdot u^2
+$$
+
+For $\tau > 0.5$, positive residuals ($Q > V$) are weighted more than
+negative ones, so $V_\psi(s)$ settles above the *mean* of $Q_{\bar\theta}(s,
+\cdot)$ over the data's action distribution at $s$ — an implicit,
+in-distribution stand-in for $\max_a Q(s,a)$ that never actually evaluates
+$Q$ at a proposed action. The critic then regresses ordinarily:
+
+$$
+\mathcal{L}_Q(\theta) = \mathbb{E}_{(s,a,r,s')\sim\mathcal{D}}\Big[
+\big(Q_\theta(s,a) - (r + \gamma(1-d)V_\psi(s'))\big)^2\Big]
+$$
+
+with no $\max$ or $\arg\max$ anywhere in either loss. `iql.py::expectile_weight`
+implements $|\tau - \mathbb{1}[u<0]|$ directly and is passed as
+`sample_weights` into the existing MSE `train_step` — expectile regression
+is literally "ordinary weighted MSE with this one weighting rule," which is
+why no new network training primitive was needed for it.
+
+### 1.9 Discrete Batch-Constrained Q-Learning (BCQ)
+
+Fujimoto, Meger & Precup (2019); discrete simplification per Fujimoto,
+Conti, Ghavamzadeh & Pineau (2019). A behavior-cloning classifier
+$G_\omega(a\mid s)$ is trained by ordinary softmax cross-entropy on logged
+$(s,a)$ pairs:
+
+$$
+\mathcal{L}_G(\omega) = -\mathbb{E}_{(s,a)\sim\mathcal{D}}\big[\log G_\omega(a\mid s)\big],
+\qquad \nabla_{z_{a'}}\mathcal{L}_G = G_\omega(a'\mid s) - \mathbb{1}[a'=a]
+$$
+
+(softmax cross-entropy's gradient with respect to the pre-softmax logits
+$z$ — the same shape of formula as CQL's penalty gradient, computed in
+`bcq.py::BCQAgent.train_behavior_on_batch`). The **support set** at a state
+is
+
+$$
+A_{\text{support}}(s) = \left\{ a : \frac{G_\omega(a\mid s)}{\max_{a'} G_\omega(a'\mid s)} \geq \text{threshold} \right\}
+$$
+
+and every $\max_{a'}$ in the Bellman target — plus the final induced
+policy — is restricted to it:
+
+$$
+y_{\text{BCQ}} = r + \gamma\,(1-d)\, Q_{\bar\theta}\!\left(s', \arg\max_{a' \in A_{\text{support}}(s')} Q_\theta(s',a')\right)
+$$
+
+implemented in `bcq.py::masked_bellman_targets` by setting
+$Q_\theta(s',a')$ to $-\infty$ for every $a' \notin A_{\text{support}}(s')$
+before taking the arg max — the behavior model's own top action always
+satisfies the ratio ($=1 \geq \text{threshold}$), so the support set is
+never empty.
 
 ## 2. Reward function, step by step
 
@@ -376,3 +470,9 @@ Experience Replay," *ICLR*, 2016.
 Observable MDPs," *AAAI Fall Symposium Series*, 2015.
 [18] S. Hochreiter, J. Schmidhuber, "Long Short-Term Memory," *Neural
 Computation*, 9(8), 1735-1780, 1997. (The LSTM cell itself.)
+[19] A. Kumar, A. Zhou, G. Tucker, S. Levine, "Conservative Q-Learning for
+Offline Reinforcement Learning," *NeurIPS*, 2020.
+[20] I. Kostrikov, A. Nair, S. Levine, "Offline Reinforcement Learning with
+Implicit Q-Learning," *ICLR*, 2022 (arXiv 2021).
+[21] S. Fujimoto, E. Conti, M. Ghavamzadeh, J. Pineau, "Benchmarking Batch
+Deep Reinforcement Learning Algorithms," arXiv:1910.01708, 2019.

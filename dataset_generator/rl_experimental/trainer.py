@@ -12,12 +12,11 @@ import numpy as np
 
 from dataset_generator.bas.models import BASArtifact
 from dataset_generator.intervention.models import InterventionArtifact
-from dataset_generator.intervention.observation import InterventionObservationExtractor
 from dataset_generator.models.dataset import DatasetArtifact
 from dataset_generator.reward.models import RewardArtifact
 from dataset_generator.rl_experimental.agent import DQNAgent
 from dataset_generator.rl_experimental.config import DQNConfig, compute_dqn_config_fingerprint, default_dqn_config
-from dataset_generator.rl_experimental.environment import ACTION_NAMES, STATE_DIM, build_transitions
+from dataset_generator.rl_experimental.environment import ACTION_NAMES, STATE_DIM, collect_transitions
 from dataset_generator.rl_experimental.models import DQNTrainingArtifact
 
 SCHEMA_VERSION = "1.1"
@@ -44,11 +43,9 @@ class DQNTrainer:
         intervention_artifact: InterventionArtifact,
     ) -> DQNTrainingArtifact:
         cfg = self._config
-        observations = InterventionObservationExtractor().extract_batch(
-            dataset_artifact, bas_artifact, reward_artifact
-        )
-        transitions = build_transitions(
-            intervention_artifact, reward_artifact, observations, sequence_length=cfg.sequence_length
+        transitions = collect_transitions(
+            dataset_artifact, bas_artifact, reward_artifact, intervention_artifact,
+            sequence_length=cfg.sequence_length,
         )
         if not transitions:
             raise ValueError("No transitions could be built — check the intervention artifact is non-empty.")

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experimental RL // BAS SimView</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ['"Plus Jakarta Sans"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] },
+    colors: { brand: {
+      bg:'#f8faf7', card:'#ffffff', textDark:'#1c1f1a', textMuted:'#5d645a',
+      accentGreen:'#e1f5d6', accentGreenDark:'#2c5222', border:'#e6ebe3', blueTint:'#e0eafc'
+    }}
+  }}
+}
+</script>
+<style>
+body { background:#f8faf7; font-family:'Plus Jakarta Sans',sans-serif; color:#1c1f1a; }
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#f0f3ee}
+::-webkit-scrollbar-thumb{background:#cbd3c6;border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:#afb8aa}
+.flow-box{background:#fff;border:1px solid #e6ebe3;border-radius:0.75rem;padding:0.75rem 1rem;text-align:center;font-size:0.8rem;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+.flow-arrow{color:#9aa596;font-size:1.1rem;line-height:1}
+</style>
+</head>
+<body class="selection:bg-brand-accentGreen selection:text-brand-accentGreenDark min-h-screen flex flex-col antialiased">
+
+<!-- HEADER -->
+<header class="border-b border-brand-border bg-white/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+  <div class="flex items-center gap-4">
+    <svg class="w-8 h-8 text-brand-textDark" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4"/>
+      <path d="M50 20 L75 40 L75 70 L50 90 L25 70 L25 40 Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="50" cy="50" r="12" fill="#2c5222" opacity="0.15"/>
+      <path d="M50 30 L50 70 M30 50 L70 50" stroke="currentColor" stroke-width="2"/>
+      <circle cx="50" cy="50" r="4" fill="currentColor"/>
+    </svg>
+    <div>
+      <span class="text-[10px] font-bold tracking-wider uppercase text-brand-textMuted">Birla Institute of Technology, Mesra</span>
+      <h1 class="text-sm font-bold tracking-tight text-brand-textDark">
+        Experimental RL <span class="text-brand-textMuted font-normal">| Not the deployed policy</span>
+      </h1>
+    </div>
+  </div>
+  <div class="flex items-center gap-3">
+    <a href="index.html" class="text-xs font-semibold text-brand-textMuted hover:text-brand-textDark underline decoration-dotted">← Simulation Demo</a>
+    <a href="dashboard.html" class="text-xs font-semibold text-brand-textMuted hover:text-brand-textDark underline decoration-dotted">Real Engine Dashboard</a>
+    <span class="bg-[#fff3e0] text-[#8a5a00] text-xs font-semibold px-3 py-1.5 rounded-full border border-[#f0dcae]">
+      Experimental — not deployed
+    </span>
+  </div>
+</header>
+
+<main class="flex-1 max-w-5xl w-full mx-auto p-6 md:p-10 space-y-8">
+
+  <!-- INTRO -->
+  <section class="bg-white border border-brand-border rounded-2xl p-6">
+    <h2 class="text-2xl font-bold mb-2">Can a learned policy replace the rule engine?</h2>
+    <p class="text-sm text-brand-textMuted leading-relaxed">
+      The deployed system (see the Simulation Demo and Dashboard) plans interventions with a transparent
+      <strong class="text-brand-textDark">rule-based engine</strong> — every decision comes with a written reason.
+      This page covers a separate, <strong class="text-brand-textDark">experimental</strong> question: what happens if we
+      train a neural network to make that decision instead? Short answer: it runs, it's real, and it also reveals exactly
+      why replacing the rule engine today would be premature.
+    </p>
+  </section>
+
+  <!-- WHY OFFLINE -->
+  <section class="grid md:grid-cols-2 gap-6">
+    <div class="bg-white border border-brand-border rounded-2xl p-5">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-3">Why "offline" learning?</h3>
+      <p class="text-sm leading-relaxed">
+        There's no live classroom to practice on here — just one dataset, already generated and logged by the rule engine.
+        So instead of learning by trial-and-error in real time, the network studies the rule engine's own past decisions,
+        like a student reviewing recorded lessons instead of attending them live.
+      </p>
+    </div>
+    <div class="bg-white border border-brand-border rounded-2xl p-5">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-3">Why keep the rule engine as default?</h3>
+      <p class="text-sm leading-relaxed">
+        The network only ever sees what the rule engine already chose to do. It has almost no information about actions
+        the rule engine rarely tried — so trusting it over the transparent, reason-giving rule engine today would be a
+        real risk, not a caution being overly careful.
+      </p>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE FLOW -->
+  <section class="bg-white border border-brand-border rounded-2xl p-6">
+    <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-4">How it's built</h3>
+    <div class="flex flex-col md:flex-row items-center gap-2 md:gap-1 flex-wrap justify-center">
+      <div class="flow-box">Logged Dataset</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">Replay Buffer</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box bg-brand-accentGreen text-brand-accentGreenDark">LSTM Q-Network</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">Double DQN Target</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">Trained Policy</div>
+    </div>
+    <p class="text-xs text-brand-textMuted mt-4 text-center">
+      The LSTM reads the last few interactions as a short story, not one snapshot — so it can notice "three bad answers in a row," not just the latest one.
+    </p>
+  </section>
+
+  <!-- FOUR TECHNIQUES -->
+  <section>
+    <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-3 px-1">Four techniques, explained simply</h3>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white border border-brand-border rounded-2xl p-5">
+        <span class="text-sm font-bold text-brand-accentGreenDark">Double DQN</span>
+        <p class="text-sm text-brand-textMuted mt-1 leading-relaxed">One part of the network picks the best-looking next move; a second, steadier copy checks how good that move actually is. Splitting the two jobs stops the network from fooling itself into overconfidence.</p>
+      </div>
+      <div class="bg-white border border-brand-border rounded-2xl p-5">
+        <span class="text-sm font-bold text-brand-accentGreenDark">Prioritized Experience Replay</span>
+        <p class="text-sm text-brand-textMuted mt-1 leading-relaxed">Instead of practicing on random past examples equally, the network revisits the ones it's currently getting most wrong more often — like re-studying the questions you keep missing.</p>
+      </div>
+      <div class="bg-white border border-brand-border rounded-2xl p-5">
+        <span class="text-sm font-bold text-brand-accentGreenDark">LSTM Memory</span>
+        <p class="text-sm text-brand-textMuted mt-1 leading-relaxed">Reads a short window of recent interactions instead of one in isolation, so it can pick up on a trend building over several turns.</p>
+      </div>
+      <div class="bg-white border border-brand-border rounded-2xl p-5">
+        <span class="text-sm font-bold text-brand-accentGreenDark">Conservative / Constrained Learning</span>
+        <p class="text-sm text-brand-textMuted mt-1 leading-relaxed">CQL, IQL, and BCQ are three add-ons that make the network deliberately cautious about actions it has little evidence for — instead of confidently guessing, it stays close to what the logged data actually supports.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="bg-white border border-brand-border rounded-2xl p-6">
+    <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-4">What actually happened when we trained it</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm border-collapse">
+        <thead>
+          <tr class="border-b border-brand-border text-brand-textMuted text-xs uppercase tracking-wide">
+            <th class="py-2 pr-4">Model</th>
+            <th class="py-2 pr-4">Learns to copy the rule engine?</th>
+            <th class="py-2 pr-4">Agreement with logged decisions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-brand-border/60">
+            <td class="py-2 pr-4 font-semibold">Rule Engine (deployed)</td>
+            <td class="py-2 pr-4 text-brand-textMuted">— reference —</td>
+            <td class="py-2 pr-4 font-mono">100%</td>
+          </tr>
+          <tr class="border-b border-brand-border/60">
+            <td class="py-2 pr-4">Vanilla DQN</td>
+            <td class="py-2 pr-4 text-brand-textMuted">Barely</td>
+            <td class="py-2 pr-4 font-mono">~3%</td>
+          </tr>
+          <tr class="border-b border-brand-border/60">
+            <td class="py-2 pr-4">Double DQN + PER + LSTM (DRQN)</td>
+            <td class="py-2 pr-4 text-brand-textMuted">Barely</td>
+            <td class="py-2 pr-4 font-mono">~4%</td>
+          </tr>
+          <tr class="border-b border-brand-border/60">
+            <td class="py-2 pr-4">Conservative Q-Learning (CQL)</td>
+            <td class="py-2 pr-4 text-brand-accentGreenDark font-semibold">Much closer</td>
+            <td class="py-2 pr-4 font-mono">~86%</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-4">Constrained BCQ</td>
+            <td class="py-2 pr-4 text-brand-accentGreenDark font-semibold">Much closer</td>
+            <td class="py-2 pr-4 font-mono">~87%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="bg-brand-accentGreen/40 border border-[#cbdcb5] rounded-xl p-4 mt-4">
+      <p class="text-sm leading-relaxed">
+        <strong class="text-brand-accentGreenDark">This low number is a finding, not a failure.</strong>
+        A plain network trained this way barely resembles the rule engine's decisions — because most logged interactions
+        needed no help at all, so it never really learns what "no help needed" looks like. Add a technique that makes the
+        network cautious about guessing (CQL, BCQ), and agreement jumps dramatically. That jump is itself evidence the
+        caution mechanism is working exactly as intended.
+      </p>
+    </div>
+  </section>
+
+  <!-- HONEST BOUNDARIES -->
+  <section class="bg-white border border-brand-border rounded-2xl p-6">
+    <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-3">What this page is not claiming</h3>
+    <ul class="text-sm text-brand-textMuted space-y-2 list-disc list-inside leading-relaxed">
+      <li>Not a replacement for the deployed rule engine — that stays the system of record.</li>
+      <li>Not validated against any real student outcome — the reward is a designed proxy, not measured learning benefit.</li>
+      <li>"Agreement" measures similarity to logged decisions, not correctness — there's no ground truth for what the ideal decision was.</li>
+      <li>Not trained or evaluated on real classroom data — everything here is synthetic, exactly like the rest of this project.</li>
+    </ul>
+  </section>
+
+  <div class="text-center pb-6">
+    <a href="index.html" class="inline-block bg-brand-textDark text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-brand-textMuted transition">← Back to the live demo</a>
+  </div>
+
+</main>
+
+<footer class="border-t border-brand-border bg-white py-5 px-8 text-center text-xs text-brand-textMuted">
+  <p>Synthetic research data — not a diagnostic tool. Source:
+  <a class="underline text-brand-textDark" href="https://github.com/saminadamn/behavioral-attention-score" target="_blank">github.com/saminadamn/behavioral-attention-score</a></p>
+</footer>
+
+</body>
+</html>

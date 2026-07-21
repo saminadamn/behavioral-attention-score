@@ -9,6 +9,7 @@ from dataset_generator.config.attention_state import combine_transition_matrix
 from dataset_generator.generators.profiles import ProfileFactory
 from dataset_generator.generators.session_batch import build_session_simulator, generate_sessions
 from dataset_generator.generators.session_report import build_session_report, render_session_report
+from dataset_generator.generators.session_simulator import InterventionDecisionInput
 from dataset_generator.generators.student_profile_generator import generate_students
 from dataset_generator.generators.transition_engine import TransitionEngine
 from dataset_generator.utils import build_rng_streams
@@ -282,6 +283,91 @@ def test_generate_sessions_multiple_students_and_sessions() -> None:
 # ---------------------------------------------------------------------------
 # 1000-session stress test
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# Injectable intervention_policy hook (used only by live baseline-policy
+# comparisons in dataset_generator.rl_experimental.baselines — never by the
+# default pipeline, which must keep producing identical datasets)
+# ---------------------------------------------------------------------------
+
+
+def test_default_intervention_policy_none_matches_prior_behavior() -> None:
+    """Passing no policy (the default) must reproduce exactly what every
+    other test in this file already asserts about the built-in heuristic —
+    the whole point of defaulting to `None` is zero behavior change.
+    """
+
+    config = default_config()
+    students = generate_students(config, build_rng_streams(config.seed))[:3]
+
+    streams_a = build_rng_streams(config.seed)
+    sessions_a = generate_sessions(config, students, sessions_per_student=2, rng_streams=streams_a)
+
+    streams_b = build_rng_streams(config.seed)
+    sessions_b = generate_sessions(
+        config, students, sessions_per_student=2, rng_streams=streams_b, intervention_policy=None
+    )
+
+    flags_a = [i.interaction_number for s in sessions_a for i in s.interactions]
+    flags_b = [i.interaction_number for s in sessions_b for i in s.interactions]
+    assert flags_a == flags_b
+    interventions_a = [e.interaction_number for s in sessions_a for e in s.intervention_history]
+    interventions_b = [e.interaction_number for s in sessions_b for e in s.intervention_history]
+    assert interventions_a == interventions_b
+
+
+def test_no_intervention_policy_produces_zero_interventions() -> None:
+    config = default_config()
+    students = generate_students(config, build_rng_streams(config.seed))[:3]
+
+    def never_intervene(_: InterventionDecisionInput) -> bool:
+        return False
+
+    sessions = generate_sessions(
+        config, students, sessions_per_student=2, rng_streams=build_rng_streams(config.seed),
+        intervention_policy=never_intervene,
+    )
+    assert all(len(s.intervention_history) == 0 for s in sessions)
+
+
+def test_always_intervene_policy_intervenes_every_interaction() -> None:
+    config = default_config()
+    students = generate_students(config, build_rng_streams(config.seed))[:2]
+
+    def always_intervene(_: InterventionDecisionInput) -> bool:
+        return True
+
+    sessions = generate_sessions(
+        config, students, sessions_per_student=1, rng_streams=build_rng_streams(config.seed),
+        intervention_policy=always_intervene,
+    )
+    for session in sessions:
+        assert len(session.intervention_history) == len(session.interactions)
+
+
+def test_intervention_policy_receives_expected_fields() -> None:
+    """The callback sees only pre-interaction information — no lookahead
+    into the interaction it's deciding about.
+    """
+
+    config = default_config()
+    students = generate_students(config, build_rng_streams(config.seed))[:1]
+    seen: list[InterventionDecisionInput] = []
+
+    def recording_policy(decision_input: InterventionDecisionInput) -> bool:
+        seen.append(decision_input)
+        return False
+
+    generate_sessions(
+        config, students, sessions_per_student=1, rng_streams=build_rng_streams(config.seed),
+        intervention_policy=recording_policy,
+    )
+    assert len(seen) > 0
+    first = seen[0]
+    assert first.interaction_number == 1
+    assert first.previous_attention_state is None  # nothing has happened yet
+    assert 0.0 <= first.rolling_engagement <= 1.0
 
 
 def test_generate_1000_sessions_without_error() -> None:

@@ -102,31 +102,20 @@ class RecurrentQNetwork:
         q, _ = self.forward(sequences)
         return q
 
-    def train_step(
-        self,
-        sequences: np.ndarray,
-        actions: np.ndarray,
-        targets: np.ndarray,
-        learning_rate: float,
-        sample_weights: np.ndarray | None = None,
-    ) -> tuple[float, np.ndarray]:
-        """One gradient step of (importance-weighted) MSE(Q(s,a), target).
+    def apply_output_gradient(
+        self, cache: dict, grad_q: np.ndarray, learning_rate: float
+    ) -> None:
+        """BPTT + Adam update given `grad_q = dL/d(Q-values)` (batch, action_dim).
 
-        Returns `(loss, td_errors)` — `td_errors` (predicted - target, one
-        per sample, unweighted) are what Prioritized Experience Replay
-        uses to re-rank the transitions just trained on.
+        This is the one backward pass every training algorithm in this
+        package (vanilla/Double DQN, CQL, IQL's value regression, BCQ's
+        behavior-cloning head) shares — only the formula for `grad_q`
+        differs per algorithm (plain TD-error gradient, TD-error plus a
+        conservative penalty term, expectile-weighted regression, or a
+        softmax cross-entropy gradient). Keeping one BPTT implementation
+        means a bug fixed here is fixed for every algorithm at once,
+        instead of four near-identical copies drifting apart.
         """
-
-        batch_size = sequences.shape[0]
-        weights = np.ones(batch_size) if sample_weights is None else sample_weights
-
-        q, cache = self.forward(sequences)
-        predicted = q[np.arange(batch_size), actions]
-        td_errors = predicted - targets
-        loss = float(np.mean(weights * td_errors**2))
-
-        grad_q = np.zeros_like(q)
-        grad_q[np.arange(batch_size), actions] = 2.0 * weights * td_errors / batch_size
 
         steps = cache["steps"]
         h_final = cache["h_final"]
@@ -174,6 +163,34 @@ class RecurrentQNetwork:
         grads["b_out"] = grad_b_out
 
         self._adam_update(grads, learning_rate)
+
+    def train_step(
+        self,
+        sequences: np.ndarray,
+        actions: np.ndarray,
+        targets: np.ndarray,
+        learning_rate: float,
+        sample_weights: np.ndarray | None = None,
+    ) -> tuple[float, np.ndarray]:
+        """One gradient step of (importance-weighted) MSE(Q(s,a), target).
+
+        Returns `(loss, td_errors)` — `td_errors` (predicted - target, one
+        per sample, unweighted) are what Prioritized Experience Replay
+        uses to re-rank the transitions just trained on.
+        """
+
+        batch_size = sequences.shape[0]
+        weights = np.ones(batch_size) if sample_weights is None else sample_weights
+
+        q, cache = self.forward(sequences)
+        predicted = q[np.arange(batch_size), actions]
+        td_errors = predicted - targets
+        loss = float(np.mean(weights * td_errors**2))
+
+        grad_q = np.zeros_like(q)
+        grad_q[np.arange(batch_size), actions] = 2.0 * weights * td_errors / batch_size
+
+        self.apply_output_gradient(cache, grad_q, learning_rate)
         return loss, td_errors
 
     def _adam_update(self, grads: dict[str, np.ndarray], learning_rate: float) -> None:

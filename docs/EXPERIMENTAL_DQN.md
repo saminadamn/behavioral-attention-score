@@ -118,6 +118,18 @@ not implementation bugs:
    a validated measure of learning benefit. Optimizing it harder is not
    optimizing real tutoring quality.
 
+## Beyond DQN: algorithms built specifically for offline data
+
+Double DQN, PER, and the LSTM encoder above all improve *how well and how
+fast* a network fits logged transitions — none of them addresses what
+happens when the network is queried about an action the logging policy
+rarely took. `docs/OFFLINE_RL.md` covers three algorithms
+(`dataset_generator.rl_experimental.offline`) built specifically for that
+gap — Conservative Q-Learning, Implicit Q-Learning, and Discrete
+Batch-Constrained Q-Learning — each with a measured, reproducible effect
+demonstrating its mechanism actually works (e.g., CQL's greedy/logged
+agreement rate jumps from ~3% to ~86% when its penalty is turned on).
+
 ## Formal notation, the transition-reward table, and weight references
 
 The formal MDP definition ($\mathcal{S}, \mathcal{A}, P, R, \gamma$), the

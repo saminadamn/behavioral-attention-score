@@ -22,7 +22,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from dataset_generator.bas.models import BASArtifact
 from dataset_generator.intervention.models import InterventionArtifact, InterventionObservation
+from dataset_generator.intervention.observation import InterventionObservationExtractor
+from dataset_generator.models.dataset import DatasetArtifact
 from dataset_generator.reward.models import RewardArtifact
 
 # Fixed action ordering — must match InterventionPolicyFactory's registration
@@ -143,3 +146,23 @@ def build_transitions(
                 )
             )
     return transitions
+
+
+def collect_transitions(
+    dataset_artifact: DatasetArtifact,
+    bas_artifact: BASArtifact,
+    reward_artifact: RewardArtifact,
+    intervention_artifact: InterventionArtifact,
+    sequence_length: int,
+) -> list[Transition]:
+    """The one place every offline-RL trainer in this package (DQN, CQL, IQL,
+    BCQ) turns four artifacts into transitions — extracted so each trainer
+    doesn't repeat the observation-extraction + windowing call pair.
+    """
+
+    observations = InterventionObservationExtractor().extract_batch(
+        dataset_artifact, bas_artifact, reward_artifact
+    )
+    return build_transitions(
+        intervention_artifact, reward_artifact, observations, sequence_length=sequence_length
+    )

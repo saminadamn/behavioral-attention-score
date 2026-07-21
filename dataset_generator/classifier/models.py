@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
 
 
 class ClassifierModel(ABC):
@@ -112,6 +113,24 @@ class GradientBoostingModel(ClassifierModel):
 
     def _build_estimator(self, random_state: int, **kwargs: object):
         return GradientBoostingClassifier(random_state=random_state, **kwargs)
+
+
+@ClassifierModelFactory.register
+class MLPModel(ClassifierModel):
+    """A feedforward neural network baseline (scikit-learn's `MLPClassifier`
+    — already a core dependency, not a new one) for Phase 4's deep-learning
+    comparison in `docs/DEEP_LEARNING_COMPARISON.md`. Two hidden layers is a
+    deliberately modest default: this dataset has ~60 tabular features per
+    interaction, not images or sequences, so a large network has no
+    structural advantage here.
+    """
+
+    name = "mlp"
+
+    def _build_estimator(self, random_state: int, **kwargs: object):
+        defaults = {"hidden_layer_sizes": (64, 32), "max_iter": 500, "early_stopping": True}
+        defaults.update(kwargs)
+        return MLPClassifier(random_state=random_state, **defaults)
 
 
 try:

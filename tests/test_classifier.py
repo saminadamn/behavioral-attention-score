@@ -559,3 +559,37 @@ def test_stress_100000_records_train_and_predict() -> None:
     predictor = AttentionClassifierPredictor(training_artifact)
     predictions = predictor.predict_batch(records[:1000])
     assert len(predictions) == 1000
+
+
+# ---------------------------------------------------------------------------
+# MLP (Phase 4's feedforward-neural-network baseline)
+# ---------------------------------------------------------------------------
+
+
+def test_mlp_is_registered() -> None:
+    assert "mlp" in ClassifierModelFactory.available_models()
+
+
+def test_mlp_trains_and_predicts() -> None:
+    dataset = _dataset_artifact()
+    trainer = AttentionClassifierTrainer()
+    training_artifact = trainer.train(
+        dataset, TrainingConfig(model_name="mlp", split_mode="student_aware", compute_feature_importance=False),
+    )
+    assert 0.0 <= training_artifact.metrics.accuracy <= 1.0
+    assert training_artifact.metadata.model_type == "mlp"
+
+
+def test_mlp_permutation_importance_is_model_agnostic() -> None:
+    """Permutation importance doesn't need tree-specific attributes — this
+    is the check that MLP (which has no `feature_importances_`) works
+    through the exact same code path random_forest/logistic_regression do.
+    """
+
+    dataset = _dataset_artifact()
+    trainer = AttentionClassifierTrainer()
+    training_artifact = trainer.train(
+        dataset, TrainingConfig(model_name="mlp", split_mode="student_aware", compute_feature_importance=True),
+    )
+    assert training_artifact.feature_importance is not None
+    assert len(training_artifact.feature_importance.ranked) > 0

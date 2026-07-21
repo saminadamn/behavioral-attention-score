@@ -35,6 +35,11 @@ Why this stays experimental rather than becoming the new default:
    a real classroom. Proper off-policy evaluation (importance sampling,
    doubly-robust estimators) is future work, not implemented here.
 
+None of the three upgrades above actually addresses point 1 — they make
+fitting the logged data faster and more stable, not more aware of what
+data is missing. `dataset_generator.rl_experimental.offline` (CQL, IQL,
+Discrete BCQ) is the part of this package purpose-built for that gap.
+
 See `docs/EXPERIMENTAL_DQN.md` for the full writeup.
 """
 

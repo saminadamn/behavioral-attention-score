@@ -122,6 +122,27 @@ repository: the classifier trains on simulator-generated labels, so its
 metrics describe how well it recovers the generator's own rule — not
 real-world diagnostic accuracy.
 
+## Comparison Study (Reproducibility, Baselines, RL, Deep Learning)
+
+`run_comparison_study.py` runs a second, complementary study: real,
+causal baseline-policy comparisons (Rule-Based vs. No-Intervention vs.
+Random — each one actually drives session generation, not a reused static
+reward), the full RL family (Vanilla/Double/Double+PER/DRQN plus CQL/IQL/
+BCQ) evaluated offline, and a classifier deep-learning comparison
+(Logistic Regression, Random Forest, MLP, LSTM):
+
+```bash
+python run_comparison_study.py --students 40 --sessions 3
+```
+
+writes `outputs_comparison/<timestamp>/{reproducibility.json,
+baseline_policy_table.csv, rl_evaluation_table.csv,
+classifier_comparison_table.csv, models/}`. See `docs/COMPARISON_STUDY.md`
+and `docs/DEEP_LEARNING_COMPARISON.md` for the full writeup, and
+`docs/PHASE_ROADMAP.md` for what's scoped but not yet built (ablation
+studies, hyperparameter sweeps, multi-seed statistical significance,
+Transformer, and beyond).
+
 ## Example Usage
 
 Run the full pipeline through the orchestration layer:
@@ -185,7 +206,11 @@ See `docs/TESTING.md` for full coverage details and current runtimes.
 - `docs/ORCHESTRATION.md` — LangGraph workflow, checkpointing, and recovery
 - `docs/EVALUATION.md` — benchmarks, ablations, and sensitivity analysis
 - `docs/EXPERIMENTAL_DQN.md` — the offline Double DQN + Prioritized Replay + LSTM prototype, and why it isn't the default
-- `docs/RL_FORMALIZATION.md` — formal MDP/Bellman/Double-DQN/PER/LSTM notation, a worked reward calculation, and references for the hand-set reward weights
+- `docs/OFFLINE_RL.md` — CQL, IQL, and Discrete BCQ: three algorithms purpose-built for offline data, with measured effects
+- `docs/RL_FORMALIZATION.md` — formal MDP/Bellman/Double-DQN/PER/LSTM/CQL/IQL/BCQ notation, a worked reward calculation, and references for the hand-set reward weights
+- `docs/COMPARISON_STUDY.md` — reproducibility, real causal baseline-policy comparison, and RL evaluation tables
+- `docs/DEEP_LEARNING_COMPARISON.md` — Logistic Regression/Random Forest/MLP/LSTM classifier comparison
+- `docs/PHASE_ROADMAP.md` — ablation studies, hyperparameter sweeps, and statistical significance: scoped, not yet built
 - `docs/API.md` — public API reference
 - `docs/TESTING.md` — test philosophy and coverage
 - `docs/DESIGN_DECISIONS.md` — engineering decisions and alternatives considered

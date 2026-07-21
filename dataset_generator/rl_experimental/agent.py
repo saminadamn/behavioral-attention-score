@@ -24,6 +24,34 @@ from dataset_generator.rl_experimental.network import RecurrentQNetwork
 from dataset_generator.rl_experimental.replay_buffer import PrioritizedReplayBuffer, ReplayBuffer
 
 
+def double_dqn_bellman_target(
+    online_network: RecurrentQNetwork,
+    target_network: RecurrentQNetwork,
+    rewards: np.ndarray,
+    next_states: np.ndarray,
+    dones: np.ndarray,
+    gamma: float,
+    use_double_dqn: bool = True,
+) -> np.ndarray:
+    """`r + gamma * Q(s', a*) * (1-done)`, shared by DQN and CQL (both build
+    on the same Double-DQN target; CQL adds a conservative penalty on top
+    of it rather than changing the bootstrap itself). Kept as a free
+    function, not a method, so it has exactly one implementation instead
+    of drifting between the two agents that need it.
+    """
+
+    if use_double_dqn:
+        online_next_q = online_network.predict(next_states)
+        best_actions = np.argmax(online_next_q, axis=1)
+        target_next_q = target_network.predict(next_states)
+        selected_q = target_next_q[np.arange(len(best_actions)), best_actions]
+    else:
+        target_next_q = target_network.predict(next_states)
+        selected_q = target_next_q.max(axis=1)
+
+    return rewards + gamma * selected_q * (1.0 - dones)
+
+
 class DQNAgent:
     def __init__(self, state_dim: int, action_dim: int, config: DQNConfig) -> None:
         self._config = config
@@ -72,16 +100,10 @@ class DQNAgent:
         reporting) don't need to reach into a private method.
         """
         cfg = self._config
-        if cfg.use_double_dqn:
-            online_next_q = self.online_network.predict(next_states)
-            best_actions = np.argmax(online_next_q, axis=1)
-            target_next_q = self.target_network.predict(next_states)
-            selected_q = target_next_q[np.arange(len(best_actions)), best_actions]
-        else:
-            target_next_q = self.target_network.predict(next_states)
-            selected_q = target_next_q.max(axis=1)
-
-        return rewards + cfg.gamma * selected_q * (1.0 - dones)
+        return double_dqn_bellman_target(
+            self.online_network, self.target_network, rewards, next_states, dones,
+            gamma=cfg.gamma, use_double_dqn=cfg.use_double_dqn,
+        )
 
     def train_on_batch(self) -> float | None:
         cfg = self._config
