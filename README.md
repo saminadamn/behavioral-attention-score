@@ -28,7 +28,7 @@ Real classroom data is hard to collect because of privacy and ethical constraint
 - **Five student archetypes** — Consistently Focused, Gradually Fatigued, Highly Distractible, Highly Impulsive, and Recovering Learner, each implemented as its own strategy class.
 - **Attention score with temporal smoothing** — feature extraction, normalization, and evidence combination are separate, inspectable stages rather than one opaque formula.
 - **Decomposed reward model** — performance, behavior, and intervention cost are tracked separately so each can be analyzed or ablated independently.
-- **Rule-based intervention engine** — eight policies (hints, concept review, difficulty reduction, motivational prompts, breaks, encouragement, question reframing, no intervention), each with a traceable trigger reason. Not a trained RL policy.
+- **Rule-based intervention engine** — eight policies (hints, concept review, difficulty reduction, motivational prompts, breaks, encouragement, question reframing, no intervention), each with a traceable trigger reason. Not a trained RL policy — see `docs/EXPERIMENTAL_DQN.md` for why, backed by an actual offline-DQN prototype rather than an assertion.
 - **LangGraph orchestration** — the pipeline runs as a checkpointable, resumable workflow.
 - **Stress-tested** with datasets of 100,000+ interactions, alongside a full unit and integration test suite.
 
@@ -64,6 +64,7 @@ dataset_generator/
     intervention/      # Intervention engine
     orchestration/     # LangGraph workflow
     evaluation/        # Benchmarks, ablations, sensitivity sweeps
+    rl_experimental/   # Offline Double DQN + PER + LSTM prototype (not used by default)
 
 tests/    # Unit, integration, and stress tests
 docs/     # Architecture, pipeline, orchestration, API, testing, design notes
@@ -88,6 +89,38 @@ Requires Python 3.10+. Core dependencies: `pydantic`, `numpy`, `pandas`, `scipy`
 pytest -q                   # run the full test suite
 pytest -q -k "not stress"   # skip the 100k+ stress tests
 ```
+
+## One-Command Experiment
+
+`run_experiment.py` runs the full pipeline end-to-end — dataset generation,
+BAS, reward, intervention planning, and classifier training/evaluation —
+and writes a complete, thesis-ready results bundle to `outputs/`:
+
+```bash
+python run_experiment.py                                        # defaults: 60 students, 4 sessions each
+python run_experiment.py --students 500 --sessions 15            # larger run
+python run_experiment.py --model gradient_boosting --calibration isotonic
+```
+
+```
+outputs/
+    datasets/   synthetic_dataset.csv, metadata.json
+    models/     classifier.joblib, preprocessor.joblib
+    figures/    confusion_matrix.png, roc_curve.png, pr_curve.png,
+                calibration_curve.png, feature_importance.png,
+                bas_distribution.png, attention_state_distribution.png,
+                student_profile_distribution.png,
+                intervention_distribution.png, transition_heatmap.png
+    reports/    metrics.csv, per_class_metrics.csv,
+                classification_report.txt, experiment_summary.md/.json
+```
+
+Every number in `experiment_summary.md` carries the run's config
+fingerprints, so a reported figure can always be traced back to the exact
+seed and configuration that produced it. As with everything else in this
+repository: the classifier trains on simulator-generated labels, so its
+metrics describe how well it recovers the generator's own rule — not
+real-world diagnostic accuracy.
 
 ## Example Usage
 
@@ -151,6 +184,8 @@ See `docs/TESTING.md` for full coverage details and current runtimes.
 - `docs/PIPELINE.md` — end-to-end data flow
 - `docs/ORCHESTRATION.md` — LangGraph workflow, checkpointing, and recovery
 - `docs/EVALUATION.md` — benchmarks, ablations, and sensitivity analysis
+- `docs/EXPERIMENTAL_DQN.md` — the offline Double DQN + Prioritized Replay + LSTM prototype, and why it isn't the default
+- `docs/RL_FORMALIZATION.md` — formal MDP/Bellman/Double-DQN/PER/LSTM notation, a worked reward calculation, and references for the hand-set reward weights
 - `docs/API.md` — public API reference
 - `docs/TESTING.md` — test philosophy and coverage
 - `docs/DESIGN_DECISIONS.md` — engineering decisions and alternatives considered
