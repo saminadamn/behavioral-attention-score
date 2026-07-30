@@ -79,6 +79,20 @@ web/      # index.html (interactive demo), dashboard.html (real-engine
           #   dashboard), experimental_rl.html (offline-RL explainer)
 ```
 
+## Screenshots
+
+**Landing page** (`web/index.html`) — deterministic client-side simulation arena, thesis implementation stats, and student archetype cards:
+
+![Landing page](docs/screenshots/landing_page.png)
+
+**Real engine dashboard** (`web/dashboard.html`) — every chart and number computed by the actual Python pipeline and exported as a static artifact:
+
+![Real engine dashboard](docs/screenshots/dashboard.png)
+
+**Experimental RL explainer** (`web/experimental_rl.html`) — plain-language walkthrough of the offline-RL comparison (Double DQN vs. CQL/BCQ) and why the rule engine stays the deployed default:
+
+![Experimental RL explainer](docs/screenshots/experimental_rl.png)
+
 ## Installation
 
 ```bash
