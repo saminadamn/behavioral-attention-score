@@ -30,7 +30,7 @@ Real classroom data is hard to collect because of privacy and ethical constraint
 - **Decomposed reward model** — performance, behavior, and intervention cost are tracked separately so each can be analyzed or ablated independently.
 - **Rule-based intervention engine** — eight policies (hints, concept review, difficulty reduction, motivational prompts, breaks, encouragement, question reframing, no intervention), each with a traceable trigger reason. Not a trained RL policy — see `docs/EXPERIMENTAL_DQN.md` for why, backed by an actual offline-DQN prototype rather than an assertion.
 - **LangGraph orchestration** — the pipeline runs as a checkpointable, resumable workflow.
-- **Stress-tested** with datasets of 100,000+ interactions, alongside a full unit and integration test suite (471 tests).
+- **Stress-tested** with datasets of 100,000+ interactions, alongside a full unit and integration test suite (480 tests).
 
 ## What's here
 
@@ -246,6 +246,7 @@ See `docs/TESTING.md` for full coverage details and current runtimes.
 - `docs/COMPARISON_STUDY.md` — reproducibility, real causal baseline-policy comparison, and RL evaluation tables
 - `docs/DEEP_LEARNING_COMPARISON.md` — Logistic Regression/Random Forest/MLP/LSTM classifier comparison
 - `docs/APPENDIX_ANALYSIS.md` — ablation study, reward-weight sensitivity, multi-seed statistics, significance testing, and confusion-matrix error analysis
+- `docs/ROBUSTNESS_AUDIT.md` — an adversarial-case audit of the BAS scorer that found and fixed a latency blind spot (the engine had no notion of a response being premature *for the question asked*, only fast relative to the student's own baseline), with before/after scores and regression coverage
 - `docs/PHASE_ROADMAP.md` — hyperparameter grid sweeps, Transformer, and beyond: scoped, not yet built
 - `docs/API.md` — public API reference
 - `docs/TESTING.md` — test philosophy and coverage

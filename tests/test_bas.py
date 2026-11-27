@@ -55,7 +55,8 @@ def test_feature_extractor_extracts_all_expected_features() -> None:
     extractor = BASFeatureExtractor()
     observation = extractor.extract(artifact.records[0])
     expected = {
-        "response_latency", "abs_normalized_latency", "rolling_latency", "rolling_engagement",
+        "response_latency", "abs_normalized_latency", "prompt_relative_latency",
+        "rolling_latency", "rolling_engagement",
         "fatigue", "correctness", "confidence", "semantic_similarity", "coherence",
         "lexical_diversity", "hesitation", "topic_shift", "repetition_ratio", "session_progress",
         "classifier_confidence",
@@ -97,6 +98,118 @@ def test_abs_normalized_latency_is_nonnegative() -> None:
     for record in artifact.records[:50]:
         observation = extractor.extract(record)
         assert observation.raw_values["abs_normalized_latency"] >= 0.0
+
+
+# ---------------------------------------------------------------------------
+# Robustness audit regression: prompt-complexity-relative latency
+#
+# `abs_normalized_latency` alone only compares a response's latency to that
+# same student's own baseline, so it cannot distinguish "answered quickly
+# because fluent" from "answered implausibly fast for the question asked."
+# `prompt_relative_latency` (docs/ROBUSTNESS_AUDIT.md) closes that gap.
+# These tests fail on a revert of the fix: `prompt_relative_latency` would
+# either be absent from `raw_values` (feature_extractor.py) or absent from
+# `feature_configs` (config.py), and the end-to-end case would collapse back
+# to the two scores being indistinguishable.
+# ---------------------------------------------------------------------------
+
+
+def _record(**overrides):
+    from dataset_generator.models.dataset import DatasetRecord
+
+    kwargs = dict(
+        session_id="s1", student_id="st1", interaction_number=1,
+        prompt_id="p1", response_id="r1",
+        attention_state="focused", intervention_applied=False, session_progress=0.5,
+        student_profile="consistently_focused", student_profile_description="x",
+        student_baseline_latency=0.5, student_latency_variance=0.1,
+        student_engagement_tendency=0.7, student_fatigue_rate=0.1,
+        student_intervention_sensitivity=0.5,
+        prompt_subject="math", prompt_topic="algebra", prompt_difficulty="medium",
+        prompt_cognitive_level="apply", prompt_text="x", prompt_expected_answer_type="numeric",
+        prompt_estimated_response_length=20, prompt_keywords="x", prompt_learning_objective="x",
+        prompt_reading_time_seconds=6.0, prompt_token_count=14, prompt_concept_count=2,
+        prompt_difficulty_score=0.5, prompt_cognitive_complexity_score=0.5, prompt_readability_grade=6.0,
+        response_text="x", response_correctness_score=1.0, response_length=5,
+        response_semantic_similarity=0.9, response_lexical_diversity=0.8, response_sentiment=0.0,
+        response_engagement_proxy=0.8, response_confidence=0.9, response_hesitation_markers="",
+        response_repetition_ratio=0.0, response_coherence_score=0.9, response_topic_shift=0.05,
+        response_strategy_used="direct",
+        behaviour_response_latency=0.4, behaviour_interaction_duration=0.4,
+        behaviour_hesitation_duration=0.0, behaviour_rolling_latency=0.4,
+        behaviour_rolling_engagement=0.8, behaviour_fatigue_level=0.1,
+        behaviour_normalized_latency=-0.9, behaviour_transition_occurred=False,
+        session_total_interactions=1, session_dominant_attention_state="focused",
+        session_intervention_count=0, session_final_fatigue=0.1,
+        session_average_engagement=0.8, session_average_correctness=0.9,
+        session_average_latency=0.5,
+    )
+    kwargs.update(overrides)
+    return DatasetRecord(**kwargs)
+
+
+def test_prompt_relative_latency_low_for_premature_answer() -> None:
+    # Answered in 0.3s to a question that takes 14s just to read.
+    record = _record(prompt_reading_time_seconds=14.0, behaviour_response_latency=0.3)
+    observation = BASFeatureExtractor().extract(record)
+    assert observation.raw_values["prompt_relative_latency"] == pytest.approx(0.3 / 14.0)
+    assert observation.raw_values["prompt_relative_latency"] < 0.1
+
+
+def test_prompt_relative_latency_guards_against_zero_reading_time() -> None:
+    record = _record(prompt_reading_time_seconds=0.0, behaviour_response_latency=1.0)
+    observation = BASFeatureExtractor().extract(record)
+    assert observation.raw_values["prompt_relative_latency"] == pytest.approx(10.0)
+
+
+def test_premature_answer_scores_lower_than_fluent_fast_answer() -> None:
+    """The actual blind spot: before the fix, both of these scored ~equal."""
+
+    engine = BASEngine()
+
+    fluent_fast = _record(
+        student_baseline_latency=0.5, student_latency_variance=0.1,
+        prompt_reading_time_seconds=0.6, behaviour_response_latency=0.4,
+        behaviour_normalized_latency=-0.9,
+    )
+    premature_for_complex_question = _record(
+        student_baseline_latency=0.5, student_latency_variance=0.1,
+        prompt_reading_time_seconds=14.0, behaviour_response_latency=0.3,
+        behaviour_normalized_latency=-1.0,
+    )
+
+    fluent_score = engine.compute(_single_record_artifact(fluent_fast)).records[0].score
+    premature_score = engine.compute(_single_record_artifact(premature_for_complex_question)).records[0].score
+
+    assert premature_score < fluent_score - 0.05
+
+
+def _single_record_artifact(record) -> "DatasetArtifact":
+    from dataset_generator.models.dataset import (
+        DatasetArtifact, DatasetManifest, DatasetMetadata, DatasetStatistics, DatasetValidationReport,
+    )
+
+    return DatasetArtifact(
+        records=[record],
+        statistics=DatasetStatistics(
+            record_count=1, feature_distributions={}, class_balance={}, attention_balance={},
+            profile_balance={}, session_balance={}, subject_balance={}, difficulty_balance={},
+            correlation_matrix={}, missing_value_summary={},
+        ),
+        validation=DatasetValidationReport(
+            record_count=1, missing_value_issues={}, duplicate_row_count=0, duplicate_id_count=0,
+            invalid_range_issues={}, impossible_transition_count=0, invalid_attention_state_count=0,
+            orphan_session_ids=[], orphan_student_ids=[], nan_count=0, inf_count=0, schema_consistent=True,
+        ),
+        metadata=DatasetMetadata(
+            student_count=1, session_count=1, record_count=1,
+            subjects_covered=["math"], profiles_covered=["consistently_focused"],
+        ),
+        manifest=DatasetManifest(
+            dataset_version="1.0", schema_version="1.0", generator_version="1.0",
+            generation_timestamp=DatasetManifest.now_timestamp(), seed=0, config_fingerprint="x",
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------

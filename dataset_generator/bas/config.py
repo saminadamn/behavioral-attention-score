@@ -131,7 +131,7 @@ class BASConfig(BaseModel):
 def default_bas_config() -> BASConfig:
     """Reference BAS configuration.
 
-    Ten actively-weighted features summing to 1.0:
+    Eleven actively-weighted features summing to 1.0:
     - correctness (0.20): the strongest direct signal of on-task success.
     - semantic_similarity (0.15): how on-topic the response is.
     - coherence (0.10): vocabulary richness / non-repetition of the response.
@@ -141,9 +141,23 @@ def default_bas_config() -> BASConfig:
     - confidence (0.05): weak signal — Impulsive responses can be falsely
       confident (Module 4), so this is deliberately low-weight, not a
       strong positive indicator on its own.
-    - hesitation (0.10), topic_shift (0.10), repetition_ratio (0.05),
-      fatigue (0.10), abs_normalized_latency (0.10): negative-polarity
-      signals of disengagement/distraction.
+    - hesitation (0.06), topic_shift (0.10), repetition_ratio (0.05),
+      fatigue (0.10): negative-polarity signals of disengagement/distraction.
+      `hesitation` gave up 0.04 of its weight to `prompt_relative_latency`
+      below — the two overlap somewhat (both are timing signals), so taking
+      the share from `hesitation` rather than adding fresh weight avoids
+      over-weighting timing as a whole.
+    - abs_normalized_latency (0.02): student-baseline-relative latency
+      deviation. Deliberately small — see `prompt_relative_latency` below,
+      which was added because this feature alone has a documented blind
+      spot (`docs/ROBUSTNESS_AUDIT.md`): a response answered far too fast
+      for the *question asked* scores no differently from a genuinely fast
+      response by a quick-baseline student, since this feature only
+      compares a response to that same student's own history.
+    - prompt_relative_latency (0.12): response latency as a multiple of the
+      prompt's own reading time, independent of student baseline — the
+      feature that actually catches "answered before there was time to
+      read the question," which `abs_normalized_latency` on its own cannot.
 
     Five neutral (tracked, unweighted) fields: `response_latency` (direction
     ambiguous — superseded by `abs_normalized_latency`), `rolling_latency`,
@@ -176,7 +190,7 @@ def default_bas_config() -> BASConfig:
                 normalization=FeatureNormalizationConfig(strategy=NormalizationStrategy.IDENTITY),
             ),
             "hesitation": FeatureBASConfig(
-                weight=0.10, polarity=FeaturePolarity.NEGATIVE,
+                weight=0.06, polarity=FeaturePolarity.NEGATIVE,
                 normalization=FeatureNormalizationConfig(
                     strategy=NormalizationStrategy.MIN_MAX, min_value=0.0, max_value=5.0
                 ),
@@ -194,9 +208,18 @@ def default_bas_config() -> BASConfig:
                 normalization=FeatureNormalizationConfig(strategy=NormalizationStrategy.IDENTITY),
             ),
             "abs_normalized_latency": FeatureBASConfig(
-                weight=0.10, polarity=FeaturePolarity.NEGATIVE,
+                weight=0.02, polarity=FeaturePolarity.NEGATIVE,
                 normalization=FeatureNormalizationConfig(
                     strategy=NormalizationStrategy.MIN_MAX, min_value=0.0, max_value=3.0
+                ),
+            ),
+            "prompt_relative_latency": FeatureBASConfig(
+                weight=0.12, polarity=FeaturePolarity.POSITIVE,
+                normalization=FeatureNormalizationConfig(
+                    # 0x reading time -> 0 evidence (answered instantly,
+                    # before plausibly finishing reading); >=1x reading time
+                    # -> full evidence (took at least that long to respond).
+                    strategy=NormalizationStrategy.MIN_MAX, min_value=0.0, max_value=1.0
                 ),
             ),
             # Neutral / tracked-only features:

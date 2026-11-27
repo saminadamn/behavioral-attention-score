@@ -61,7 +61,10 @@ BASFeatureCategoryName = Literal["learning_response", "behaviour"]
 
 BAS_FEATURE_CATEGORIES: dict[BASFeatureCategoryName, tuple[str, ...]] = {
     "learning_response": ("correctness", "semantic_similarity", "coherence", "lexical_diversity", "confidence"),
-    "behaviour": ("hesitation", "topic_shift", "repetition_ratio", "fatigue", "abs_normalized_latency"),
+    "behaviour": (
+        "hesitation", "topic_shift", "repetition_ratio", "fatigue",
+        "abs_normalized_latency", "prompt_relative_latency",
+    ),
 }
 
 
