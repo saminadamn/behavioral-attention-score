@@ -238,6 +238,116 @@ body{background:#f8faf7;font-family:'Plus Jakarta Sans',sans-serif;color:#1c1f1a
     </p>
   </section>
 
+  <!-- OFFLINE RL COMPARISON -->
+  <section class="bg-white border border-brand-border rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
+    <div>
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted border-b border-brand-border pb-3 mb-1">
+        Offline-RL comparison — does a learned policy agree with the logged one?
+      </h3>
+      <p class="text-[11px] text-brand-textMuted leading-relaxed pt-2">
+        Freshly re-run via <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">run_comparison_study.py</span>
+        (20 students × 3 sessions, seed 42): eight agents trained offline on the same logged
+        rule-based-policy dataset, then measured against the one metric that's actually valid
+        offline — how often the trained policy's greedy action agrees with the logged action,
+        not a re-simulated causal reward (see the caveat below).
+      </p>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="border-b border-brand-border text-brand-textMuted">
+            <th class="py-2.5 px-3">Agent</th>
+            <th class="py-2.5 px-3">Family</th>
+            <th class="py-2.5 px-3 font-mono">Final loss</th>
+            <th class="py-2.5 px-3 font-mono">Greedy/logged agreement</th>
+            <th class="py-2.5 px-3 font-mono">Train time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">Vanilla DQN</td>
+            <td class="py-3 px-3 text-brand-textMuted">unconstrained online-style</td>
+            <td class="py-3 px-3 font-mono">0.0038</td>
+            <td class="py-3 px-3 font-mono">0.0219</td>
+            <td class="py-3 px-3 font-mono">0.64s</td>
+          </tr>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">Double DQN</td>
+            <td class="py-3 px-3 text-brand-textMuted">unconstrained online-style</td>
+            <td class="py-3 px-3 font-mono">0.0065</td>
+            <td class="py-3 px-3 font-mono">0.0153</td>
+            <td class="py-3 px-3 font-mono">0.72s</td>
+          </tr>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">Double DQN + PER</td>
+            <td class="py-3 px-3 text-brand-textMuted">unconstrained online-style</td>
+            <td class="py-3 px-3 font-mono">0.0036</td>
+            <td class="py-3 px-3 font-mono">0.0482</td>
+            <td class="py-3 px-3 font-mono">1.01s</td>
+          </tr>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">DRQN (+ PER + LSTM)</td>
+            <td class="py-3 px-3 text-brand-textMuted">unconstrained online-style</td>
+            <td class="py-3 px-3 font-mono">0.0050</td>
+            <td class="py-3 px-3 font-mono">0.0389</td>
+            <td class="py-3 px-3 font-mono">2.69s</td>
+          </tr>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">IQL (τ=0.7)</td>
+            <td class="py-3 px-3 text-brand-textMuted">offline-specific</td>
+            <td class="py-3 px-3 font-mono">0.0016</td>
+            <td class="py-3 px-3 font-mono">0.0241</td>
+            <td class="py-3 px-3 font-mono">3.87s</td>
+          </tr>
+          <tr class="border-b border-brand-border/50 bg-brand-accentGreen/20">
+            <td class="py-3 px-3 font-semibold">CQL (α=1.0)</td>
+            <td class="py-3 px-3 text-brand-textMuted">offline-specific, conservative</td>
+            <td class="py-3 px-3 font-mono">0.0931</td>
+            <td class="py-3 px-3 font-mono font-bold text-brand-accentGreenDark">0.8796</td>
+            <td class="py-3 px-3 font-mono">3.16s</td>
+          </tr>
+          <tr class="bg-brand-accentGreen/20">
+            <td class="py-3 px-3 font-semibold">Discrete BCQ (τ=0.3)</td>
+            <td class="py-3 px-3 text-brand-textMuted">offline-specific, conservative</td>
+            <td class="py-3 px-3 font-mono">0.0021</td>
+            <td class="py-3 px-3 font-mono font-bold text-brand-accentGreenDark">0.8643</td>
+            <td class="py-3 px-3 font-mono">3.61s</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-[11px] text-brand-textMuted leading-relaxed">
+      CQL and BCQ — the two agents explicitly built to penalize actions far from the logged
+      behaviour — agree with the logged policy on roughly 86–88% of actions, against 1.5–4.8% for
+      the unconstrained DQN family. That gap is the actual evidence for "conservative offline
+      methods avoid extrapolating to actions the data never showed," not an assumption. One honest
+      wrinkle: <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">IQL</span>
+      — also designed for offline data — agrees only 2.4% of the time here, about the same as plain
+      DQN, so "offline-specific" alone doesn't predict this outcome; the conservatism mechanism
+      (explicit penalty in CQL/BCQ vs. implicit expectile regression in IQL) appears to matter more
+      than the offline/online label.
+    </p>
+    <div class="bg-[#fcf8f2] border border-[#ebd7be] rounded-xl p-4">
+      <p class="text-[11px] text-[#7d5012] leading-relaxed">
+        <strong>Caveat, stated plainly:</strong> <span class="font-mono bg-white px-1 py-0.5 rounded border border-brand-amberBorder">avg_reward_logged_dataset</span>
+        is identical across every row (−0.0033) because none of these algorithms regenerates
+        sessions — it's the same observed reward replayed, not a causal per-policy reward. Loss and
+        greedy/logged agreement are the real, per-algorithm numbers here. A genuine causal comparison
+        would need each policy to actually drive new sessions, which is what Phase 2's baseline
+        comparison (Rule-Based vs. No-Intervention vs. Random, all causal) does instead — see
+        <span class="font-mono bg-white px-1 py-0.5 rounded border border-brand-amberBorder">docs/OFFLINE_RL.md</span>
+        for the full discussion of why offline agreement and causal reward are different questions.
+      </p>
+    </div>
+    <p class="text-[11px] text-brand-textMuted leading-relaxed">
+      The companion classifier comparison (Logistic Regression / Random Forest / MLP / LSTM) all
+      scored a perfect 1.0 accuracy and F1 on this run — expected and not a strong result on its own,
+      since the classifier is trained to recover the generator's own labeling rule from fully
+      observable features, not to diagnose anything in the real world (see
+      <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">docs/DEEP_LEARNING_COMPARISON.md</span>).
+    </p>
+  </section>
+
   <!-- DISCLOSURE -->
   <section class="bg-brand-amberBg border border-brand-amberBorder rounded-2xl p-5 space-y-2">
     <div class="flex items-center gap-2 text-brand-amber">
