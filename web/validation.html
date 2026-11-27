@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BAS Validation // Robustness Audit</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = { theme: { extend: {
+  fontFamily: { sans: ['"Plus Jakarta Sans"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] },
+  colors: { brand: { bg:'#f8faf7', textDark:'#1c1f1a', textMuted:'#5d645a',
+    accentGreen:'#e1f5d6', accentGreenDark:'#2c5222', border:'#e6ebe3',
+    amber:'#92400e', amberBg:'#fcf8f2', amberBorder:'#ebd7be' } }
+}}}
+</script>
+<style>
+body{background:#f8faf7;font-family:'Plus Jakarta Sans',sans-serif;color:#1c1f1a}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:#f0f3ee}
+::-webkit-scrollbar-thumb{background:#cbd3c6;border-radius:10px}
+</style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+<header class="border-b border-brand-border bg-white/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+  <div class="flex items-center gap-4">
+    <svg class="w-8 h-8 text-brand-textDark" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4"/><path d="M50 20 L75 40 L75 70 L50 90 L25 70 L25 40 Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="50" cy="50" r="4" fill="currentColor"/></svg>
+    <div>
+      <span class="text-[10px] font-bold tracking-wider uppercase text-brand-textMuted">Birla Institute of Technology, Mesra</span>
+      <h1 class="text-sm font-bold tracking-tight">BAS Validation <span class="text-brand-textMuted font-normal">| Robustness Audit</span></h1>
+    </div>
+  </div>
+  <div class="flex items-center gap-3">
+    <a href="index.html" class="text-xs font-semibold text-brand-textMuted hover:text-brand-textDark underline decoration-dotted">← Simulation Demo</a>
+    <a href="dashboard.html" class="text-xs font-semibold text-brand-textMuted hover:text-brand-textDark underline decoration-dotted">Real Engine Dashboard</a>
+    <a href="experimental_rl.html" class="text-xs font-semibold text-brand-textMuted hover:text-brand-textDark underline decoration-dotted">Experimental RL</a>
+    <span class="bg-brand-accentGreen text-brand-accentGreenDark text-xs font-semibold px-3 py-1.5 rounded-full border border-[#cbdcb5]">
+      Computed by the Python engine
+    </span>
+  </div>
+</header>
+
+<main class="flex-1 max-w-6xl w-full mx-auto p-6 md:p-8 space-y-8">
+
+  <section class="bg-white border border-brand-border rounded-3xl p-6 md:p-8 shadow-sm space-y-4">
+    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-accentGreen text-brand-accentGreenDark text-xs font-bold rounded-full border border-[#cbdcb5]">
+      🔎 Adversarial Case Audit
+    </span>
+    <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight">
+      What we actually checked the scoring engine against
+    </h2>
+    <p class="text-sm text-brand-textMuted leading-relaxed max-w-3xl">
+      Rather than only trusting the synthetic-dataset statistics, we constructed specific
+      adversarial cases — each one isolating a single behavioural pattern — and checked
+      whether <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">BASEngine</span>'s
+      score moved the way that pattern implies. This is the same methodology used to
+      clinically stress-test the companion live classifier in
+      <a class="font-mono bg-brand-bg text-brand-textDark px-1.5 py-0.5 rounded border border-brand-border underline decoration-dotted" href="https://github.com/saminadamn/ADHD-behavioral-attention-score" target="_blank">ADHD-behavioral-attention-score</a>,
+      applied here to this repository's own scorer. Full writeup:
+      <a class="font-mono bg-brand-bg text-brand-textDark px-1.5 py-0.5 rounded border border-brand-border underline decoration-dotted" href="https://github.com/saminadamn/behavioral-attention-score/blob/master/docs/ROBUSTNESS_AUDIT.md" target="_blank">docs/ROBUSTNESS_AUDIT.md</a>.
+    </p>
+  </section>
+
+  <!-- CASE TABLE -->
+  <section class="bg-white border border-brand-border rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
+    <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted border-b border-brand-border pb-3">
+      Constructed cases &amp; what the engine did with them
+    </h3>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="border-b border-brand-border text-brand-textMuted">
+            <th class="py-2.5 px-3">Case</th>
+            <th class="py-2.5 px-3">What it isolates</th>
+            <th class="py-2.5 px-3 font-mono">Score (before fix)</th>
+            <th class="py-2.5 px-3 font-mono">Score (after fix)</th>
+            <th class="py-2.5 px-3">Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">Genuinely fast, fluent answer</td>
+            <td class="py-3 px-3 text-brand-textMuted">Correct, coherent, low-repetition response, answered quickly for this student's own baseline.</td>
+            <td class="py-3 px-3 font-mono">0.915</td>
+            <td class="py-3 px-3 font-mono">0.899</td>
+            <td class="py-3 px-3"><span class="bg-brand-accentGreen text-brand-accentGreenDark text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#cbdcb5]">✓ stays high, as expected</span></td>
+          </tr>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">Premature answer to a complex question</td>
+            <td class="py-3 px-3 text-brand-textMuted">2-word correct answer in 0.3s to a question whose own reading time is 14s — answered before there was time to read it.</td>
+            <td class="py-3 px-3 font-mono">0.912 <span class="text-[10px] text-brand-amber">(indistinguishable from the fluent case — blind spot)</span></td>
+            <td class="py-3 px-3 font-mono font-bold">0.821</td>
+            <td class="py-3 px-3"><span class="bg-brand-accentGreen text-brand-accentGreenDark text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#cbdcb5]">✓ fixed — now clearly separated</span></td>
+          </tr>
+          <tr>
+            <td class="py-3 px-3 font-semibold">Garbled, repetitive response</td>
+            <td class="py-3 px-3 text-brand-textMuted">Run-on, repeated phrase ("can we go now can we go now…") with low coherence, despite a high synthetic correctness score.</td>
+            <td class="py-3 px-3 font-mono">0.672</td>
+            <td class="py-3 px-3 font-mono">0.672</td>
+            <td class="py-3 px-3"><span class="bg-[#eaf1ec] text-brand-accentGreenDark text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#cbdcb5]">✓ control — already handled correctly</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-[11px] text-brand-textMuted leading-relaxed">
+      The second row is the actual finding: <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">abs_normalized_latency</span>
+      only compares a response's speed to that same student's own history, so it had no way to tell
+      "fast for this student" apart from "implausibly fast for this question." We added
+      <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">prompt_relative_latency</span>
+      — latency expressed as a multiple of the prompt's own reading time — as an 11th weighted feature.
+      The third row is a control: a pattern that was <em>already</em> handled correctly (by the existing
+      <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">coherence</span> /
+      <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">repetition_ratio</span> weighting), included here so the audit isn't reporting only the failure it found.
+    </p>
+  </section>
+
+  <!-- REGRESSION COVERAGE -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white border border-brand-border rounded-2xl p-6 shadow-sm space-y-2">
+      <span class="text-xs text-brand-textMuted block">Regression tests added</span>
+      <span class="text-3xl font-bold font-mono">3</span>
+      <p class="text-[11px] text-brand-textMuted leading-relaxed">
+        Unit tests on the new ratio computation and its zero-reading-time guard, plus one
+        end-to-end test that fails if the fix is reverted (the score gap collapses back to ~0.01).
+      </p>
+    </div>
+    <div class="bg-white border border-brand-border rounded-2xl p-6 shadow-sm space-y-2">
+      <span class="text-xs text-brand-textMuted block">Full suite after the fix</span>
+      <span class="text-3xl font-bold font-mono">480<span class="text-sm text-brand-textMuted"> / 480</span></span>
+      <p class="text-[11px] text-brand-textMuted leading-relaxed">
+        <span class="font-mono">pytest tests/test_bas.py tests/test_evaluation.py</span> — including the
+        100,000-record stress test — all passing, confirming the fix doesn't regress any other engine behaviour.
+      </p>
+    </div>
+    <div class="bg-white border border-brand-border rounded-2xl p-6 shadow-sm space-y-2">
+      <span class="text-xs text-brand-textMuted block">Separation after fix</span>
+      <span class="text-3xl font-bold font-mono text-brand-accentGreenDark">0.078</span>
+      <p class="text-[11px] text-brand-textMuted leading-relaxed">
+        Score gap between the fluent and premature cases, up from 0.003 before the fix —
+        the regression test asserts this stays ≥ 0.05.
+      </p>
+    </div>
+  </section>
+
+  <!-- DISCLOSURE -->
+  <section class="bg-brand-amberBg border border-brand-amberBorder rounded-2xl p-5 space-y-2">
+    <div class="flex items-center gap-2 text-brand-amber">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      <h4 class="text-xs font-bold uppercase tracking-wider">What this is not</h4>
+    </div>
+    <p class="text-[11px] text-[#7d5012] leading-relaxed">
+      This is a software-robustness audit of a synthetic-data scoring engine, not a clinical validation
+      study. The three cases above are hand-constructed, not drawn from a real assessment instrument —
+      the project that stress-tests against an actual clinical questionnaire is the separate
+      ADHD-behavioral-attention-score live classifier (linked above), whose own
+      <span class="font-mono bg-white px-1 py-0.5 rounded border border-brand-amberBorder">questionnaire_validation.md</span>
+      documents that work. The weight split used in the fix (0.12 new / 0.02 old / 0.06 hesitation) is a
+      reasoned engineering choice, not fit to any ground truth.
+    </p>
+  </section>
+
+</main>
+
+<footer class="text-center text-[10px] text-brand-textMuted py-6">
+  Birla Institute of Technology, Mesra — Behavioral Attention Score (BAS) research prototype
+</footer>
+
+</body>
+</html>
