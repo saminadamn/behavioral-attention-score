@@ -81,31 +81,115 @@ body{background:#f8faf7;font-family:'Plus Jakarta Sans',sans-serif;color:#1c1f1a
         session, BAS and attention-state memory carried across turns the way a real session would be.
       </p>
     </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-xs border-collapse">
-        <thead>
-          <tr class="border-b border-brand-border text-brand-textMuted">
-            <th class="py-2.5 px-3">Item</th>
-            <th class="py-2.5 px-3">Construct tested</th>
-            <th class="py-2.5 px-3">Student response (excerpt)</th>
-            <th class="py-2.5 px-3">Expected</th>
-            <th class="py-2.5 px-3 font-mono">Classified</th>
-            <th class="py-2.5 px-3 font-mono">Conf.</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Baseline</td><td class="py-2.5 px-3 text-brand-textMuted">No symptoms (control turn)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Photosynthesis is the process by which plants convert sunlight…"</td><td class="py-2.5 px-3">Focused</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Focused</td><td class="py-2.5 px-3 font-mono">97%</td></tr>
-          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q1</td><td class="py-2.5 px-3 text-brand-textMuted">Careless mistakes on a routine task (DSM-5-TR A1)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"42… wait no, 32. I mean 42. Sorry, 42."</td><td class="py-2.5 px-3">Distracted</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Distracted</td><td class="py-2.5 px-3 font-mono">64%</td></tr>
-          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q2/Q3</td><td class="py-2.5 px-3 text-brand-textMuted">Can't hold attention; not listening (A1)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Uh, it was about… water? I don't really remember…"</td><td class="py-2.5 px-3">Distracted</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Distracted</td><td class="py-2.5 px-3 font-mono">54%</td></tr>
-          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q4</td><td class="py-2.5 px-3 text-brand-textMuted">Starts tasks, doesn't finish them (A1)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"My favorite animal is" <span class="not-italic text-[10px]">(trails off)</span></td><td class="py-2.5 px-3">Impulsive</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Impulsive</td><td class="py-2.5 px-3 font-mono">90%</td></tr>
-          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q6</td><td class="py-2.5 px-3 text-brand-textMuted">Avoids/resists sustained mental effort (A1)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Do we have to do this one? It's long, can we skip it?"</td><td class="py-2.5 px-3">Distracted</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Distracted</td><td class="py-2.5 px-3 font-mono">100%</td></tr>
-          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q8</td><td class="py-2.5 px-3 text-brand-textMuted">Pulled off-track by external stimuli (A1)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Wait is that a bird outside? Sorry — causes, um…"</td><td class="py-2.5 px-3">Distracted</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Distracted</td><td class="py-2.5 px-3 font-mono">78%</td></tr>
-          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q16</td><td class="py-2.5 px-3 text-brand-textMuted">Answers before the question is finished (A2)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Twenty-five pi!" <span class="not-italic text-[10px]">(0.6s)</span></td><td class="py-2.5 px-3">Impulsive</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Impulsive</td><td class="py-2.5 px-3 font-mono">89%</td></tr>
-          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q17/Q10</td><td class="py-2.5 px-3 text-brand-textMuted">Can't wait turn; fidgety, rushed (A2)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"canwegonowcanwegonow okay fine can we go"</td><td class="py-2.5 px-3">Impulsive</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Impulsive</td><td class="py-2.5 px-3 font-mono">100%</td></tr>
-          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q36</td><td class="py-2.5 px-3 text-brand-textMuted">Hyperfocus — long, engaged, on-topic (Barkley BDEFS)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Volcanoes form at tectonic plate boundaries…"</td><td class="py-2.5 px-3">Focused</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Focused</td><td class="py-2.5 px-3 font-mono">98%</td></tr>
-          <tr><td class="py-2.5 px-3 font-semibold">Q37</td><td class="py-2.5 px-3 text-brand-textMuted">Quick escalation to frustration (Barkley BDEFS)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"I don't want to do this anymore, this is stupid…"</td><td class="py-2.5 px-3">Distracted</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Distracted</td><td class="py-2.5 px-3 font-mono">52%</td></tr>
-        </tbody>
-      </table>
+    <div class="flex items-center justify-between">
+      <span class="text-[10px] font-bold uppercase tracking-wider text-brand-textMuted">Scroll through all 10 turns</span>
+      <span class="text-[10px] text-brand-textMuted font-mono">↕ one continuous session</span>
+    </div>
+    <div class="h-[440px] overflow-y-auto space-y-3 pr-1 border border-brand-border rounded-2xl p-4 bg-brand-bg">
+
+      <div class="bg-white border border-brand-border rounded-xl p-4 space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold text-brand-textDark">Baseline <span class="font-normal text-brand-textMuted">— No symptoms (control turn)</span></span>
+          <span class="bg-brand-accentGreen text-brand-accentGreenDark text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#cbdcb5]">✓ Focused · 97%</span>
+        </div>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Prompt:</strong> "What is photosynthesis?"</p>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Response</strong> <span class="font-mono text-[10px]">(6.5s)</span>: "Photosynthesis is the process by which plants convert sunlight, water, and carbon dioxide into glucose and oxygen, using chlorophyll in their leaves."</p>
+        <p class="text-[10px] text-brand-textMuted font-mono">reward +4.83 · BAS → 54.8 · tier ENCOURAGE</p>
+      </div>
+
+      <div class="bg-white border border-brand-border rounded-xl p-4 space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold text-brand-textDark">Q1 <span class="font-normal text-brand-textMuted">— Careless mistakes on a routine task (DSM-5-TR A1)</span></span>
+          <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">✓ Distracted · 64%</span>
+        </div>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Prompt:</strong> "Can you solve 24 plus 18?"</p>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Response</strong> <span class="font-mono text-[10px]">(3.0s)</span>: "42… wait no, 32. I mean 42. Sorry, 42."</p>
+        <p class="text-[10px] text-brand-textMuted font-mono">reward −3.87 · BAS → 51.0 · tier ENCOURAGE</p>
+      </div>
+
+      <div class="bg-white border border-brand-border rounded-xl p-4 space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold text-brand-textDark">Q2 / Q3 <span class="font-normal text-brand-textMuted">— Can't hold attention; not listening (A1)</span></span>
+          <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">✓ Distracted · 54%</span>
+        </div>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Prompt:</strong> "Can you summarize the chapter we just read about the water cycle?"</p>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Response</strong> <span class="font-mono text-[10px]">(9.5s)</span>: "Uh, it was about… water? I don't really remember, can you repeat the question?"</p>
+        <p class="text-[10px] text-brand-textMuted font-mono">reward −2.16 · BAS → 48.8 · tier SIMPLIFY</p>
+      </div>
+
+      <div class="bg-white border border-rose-200 rounded-xl p-4 space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold text-brand-textDark">Q4 <span class="font-normal text-brand-textMuted">— Starts tasks, doesn't finish them (A1)</span></span>
+          <span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-200">✓ Impulsive · 90%</span>
+        </div>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Prompt:</strong> "Please write two sentences describing your favorite animal."</p>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Response</strong> <span class="font-mono text-[10px]">(4.0s)</span>: "My favorite animal is" <em>(trails off)</em></p>
+        <p class="text-[10px] text-brand-textMuted font-mono">reward +0.00 · BAS → 48.8 · tier SIMPLIFY</p>
+        <p class="text-[10px] text-rose-700 bg-rose-50 border border-rose-200 rounded px-2 py-1">⚠ Originally misclassified <strong>Focused</strong> with positive reward, before the repetition/completeness fix — the worst failure mode.</p>
+      </div>
+
+      <div class="bg-white border border-brand-border rounded-xl p-4 space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold text-brand-textDark">Q6 <span class="font-normal text-brand-textMuted">— Avoids/resists sustained mental effort (A1)</span></span>
+          <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">✓ Distracted · 100%</span>
+        </div>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Prompt:</strong> "Can you read this paragraph and explain what it means in your own words?"</p>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Response</strong> <span class="font-mono text-[10px]">(2.0s)</span>: "Do we have to do this one? It's long, can we skip it?"</p>
+        <p class="text-[10px] text-brand-textMuted font-mono">reward +0.00 · BAS → 48.8 · tier SIMPLIFY</p>
+      </div>
+
+      <div class="bg-white border border-brand-border rounded-xl p-4 space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold text-brand-textDark">Q8 <span class="font-normal text-brand-textMuted">— Pulled off-track by external stimuli (A1)</span></span>
+          <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">✓ Distracted · 78%</span>
+        </div>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Prompt:</strong> "What were the main causes of World War I?"</p>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Response</strong> <span class="font-mono text-[10px]">(14.0s)</span>: "Wait is that a bird outside? Sorry — causes, um, there was an archduke I think, and also did you hear that noise?"</p>
+        <p class="text-[10px] text-brand-textMuted font-mono">reward −3.12 · BAS → 45.7 · tier SIMPLIFY</p>
+      </div>
+
+      <div class="bg-white border border-[#c7d9f5] rounded-xl p-4 space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold text-brand-textDark">Q16 <span class="font-normal text-brand-textMuted">— Answers before the question is finished (A2)</span></span>
+          <span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-200">✓ Impulsive · 89%</span>
+        </div>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Prompt:</strong> "Can you tell me what you think the answer to this long, multi-part question about the area of a circle, given radius five, might possibly be?"</p>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Response</strong> <span class="font-mono text-[10px]">(0.6s)</span>: "Twenty-five pi!"</p>
+        <p class="text-[10px] text-brand-textMuted font-mono">reward +0.00 · BAS → 45.7 · tier SIMPLIFY</p>
+        <p class="text-[10px] text-[#1e3a8a] bg-[#eef4fb] border border-[#c7d9f5] rounded px-2 py-1">⚠ This is the case that exposed the latency-vs-question-complexity gap, leading to <span class="font-mono">prematurity_score</span>.</p>
+      </div>
+
+      <div class="bg-white border border-rose-200 rounded-xl p-4 space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold text-brand-textDark">Q17 / Q10 <span class="font-normal text-brand-textMuted">— Can't wait turn; fidgety, rushed (A2)</span></span>
+          <span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-200">✓ Impulsive · 100%</span>
+        </div>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Prompt:</strong> "Okay, when you're ready, tell me about your weekend."</p>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Response</strong> <span class="font-mono text-[10px]">(0.8s)</span>: "canwegonowcanwegonow okay fine can we go"</p>
+        <p class="text-[10px] text-brand-textMuted font-mono">reward −5.00 · BAS → 40.7 · tier SIMPLIFY</p>
+        <p class="text-[10px] text-rose-700 bg-rose-50 border border-rose-200 rounded px-2 py-1">⚠ Also originally misclassified <strong>Focused</strong> with positive reward — the other case behind the repetition/completeness fix.</p>
+      </div>
+
+      <div class="bg-white border border-brand-border rounded-xl p-4 space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold text-brand-textDark">Q36 <span class="font-normal text-brand-textMuted">— Hyperfocus, long &amp; engaged (Barkley BDEFS)</span></span>
+          <span class="bg-brand-accentGreen text-brand-accentGreenDark text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#cbdcb5]">✓ Focused · 98%</span>
+        </div>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Prompt:</strong> "Tell me everything you know about how volcanoes form."</p>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Response</strong> <span class="font-mono text-[10px]">(11.0s)</span>: "Volcanoes form at tectonic plate boundaries where magma rises through the crust; there are shield volcanoes, stratovolcanoes, and cinder cones, each shaped by viscosity and eruption style."</p>
+        <p class="text-[10px] text-brand-textMuted font-mono">reward +7.83 · BAS → 48.5 · tier SIMPLIFY</p>
+      </div>
+
+      <div class="bg-white border border-brand-border rounded-xl p-4 space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold text-brand-textDark">Q37 <span class="font-normal text-brand-textMuted">— Quick escalation to frustration (Barkley BDEFS)</span></span>
+          <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">✓ Distracted · 52%</span>
+        </div>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Prompt:</strong> "That answer isn't quite right, can you try again?"</p>
+        <p class="text-[11px] text-brand-textMuted"><strong class="text-brand-textDark">Response</strong> <span class="font-mono text-[10px]">(1.5s)</span>: "I don't want to do this anymore, this is stupid, I already told you the answer."</p>
+        <p class="text-[10px] text-brand-textMuted font-mono">reward −3.12 · BAS → 45.4 · tier SIMPLIFY</p>
+      </div>
+
     </div>
     <div class="flex flex-wrap items-center gap-4 pt-1">
       <span class="bg-brand-accentGreen text-brand-accentGreenDark text-xs font-bold px-3 py-1.5 rounded-full border border-[#cbdcb5]">10 / 10 match the expected label</span>
