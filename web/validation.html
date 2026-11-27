@@ -61,6 +61,83 @@ body{background:#f8faf7;font-family:'Plus Jakarta Sans',sans-serif;color:#1c1f1a
     </p>
   </section>
 
+  <!-- QUESTIONNAIRE VALIDATION (live classifier, post-summer-project) -->
+  <section class="bg-white border border-brand-border rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
+    <div>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-blueTint text-[#1e3a8a] text-xs font-bold rounded-full border border-[#c7d9f5] mb-3">
+        📋 After the summer project
+      </span>
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted border-b border-brand-border pb-3">
+        Survey-question validation — the live classifier, not this repo's simulator
+      </h3>
+      <p class="text-[11px] text-brand-textMuted leading-relaxed pt-2">
+        This repo (and the summer Minor Project it came from) only ever scores a <em>synthetic</em>
+        dataset. The follow-on work — done after the summer project, on the separate live
+        <a class="font-mono bg-brand-bg text-brand-textDark px-1.5 py-0.5 rounded border border-brand-border underline decoration-dotted" href="https://github.com/saminadamn/ADHD-behavioral-attention-score" target="_blank">ADHD-behavioral-attention-score</a>
+        classifier — went further: ten classroom turns were hand-written, each embodying one item
+        from a standard 50-item clinical ADHD assessment instrument (DSM-5-TR / ASRS-style
+        inattention and hyperactivity-impulsivity items, plus Barkley BDEFS executive-function and
+        emotional-regulation items), and run through that classifier end-to-end as one continuous
+        session, BAS and attention-state memory carried across turns the way a real session would be.
+      </p>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="border-b border-brand-border text-brand-textMuted">
+            <th class="py-2.5 px-3">Item</th>
+            <th class="py-2.5 px-3">Construct tested</th>
+            <th class="py-2.5 px-3">Student response (excerpt)</th>
+            <th class="py-2.5 px-3">Expected</th>
+            <th class="py-2.5 px-3 font-mono">Classified</th>
+            <th class="py-2.5 px-3 font-mono">Conf.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Baseline</td><td class="py-2.5 px-3 text-brand-textMuted">No symptoms (control turn)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Photosynthesis is the process by which plants convert sunlight…"</td><td class="py-2.5 px-3">Focused</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Focused</td><td class="py-2.5 px-3 font-mono">97%</td></tr>
+          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q1</td><td class="py-2.5 px-3 text-brand-textMuted">Careless mistakes on a routine task (DSM-5-TR A1)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"42… wait no, 32. I mean 42. Sorry, 42."</td><td class="py-2.5 px-3">Distracted</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Distracted</td><td class="py-2.5 px-3 font-mono">64%</td></tr>
+          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q2/Q3</td><td class="py-2.5 px-3 text-brand-textMuted">Can't hold attention; not listening (A1)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Uh, it was about… water? I don't really remember…"</td><td class="py-2.5 px-3">Distracted</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Distracted</td><td class="py-2.5 px-3 font-mono">54%</td></tr>
+          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q4</td><td class="py-2.5 px-3 text-brand-textMuted">Starts tasks, doesn't finish them (A1)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"My favorite animal is" <span class="not-italic text-[10px]">(trails off)</span></td><td class="py-2.5 px-3">Impulsive</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Impulsive</td><td class="py-2.5 px-3 font-mono">90%</td></tr>
+          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q6</td><td class="py-2.5 px-3 text-brand-textMuted">Avoids/resists sustained mental effort (A1)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Do we have to do this one? It's long, can we skip it?"</td><td class="py-2.5 px-3">Distracted</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Distracted</td><td class="py-2.5 px-3 font-mono">100%</td></tr>
+          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q8</td><td class="py-2.5 px-3 text-brand-textMuted">Pulled off-track by external stimuli (A1)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Wait is that a bird outside? Sorry — causes, um…"</td><td class="py-2.5 px-3">Distracted</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Distracted</td><td class="py-2.5 px-3 font-mono">78%</td></tr>
+          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q16</td><td class="py-2.5 px-3 text-brand-textMuted">Answers before the question is finished (A2)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Twenty-five pi!" <span class="not-italic text-[10px]">(0.6s)</span></td><td class="py-2.5 px-3">Impulsive</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Impulsive</td><td class="py-2.5 px-3 font-mono">89%</td></tr>
+          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q17/Q10</td><td class="py-2.5 px-3 text-brand-textMuted">Can't wait turn; fidgety, rushed (A2)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"canwegonowcanwegonow okay fine can we go"</td><td class="py-2.5 px-3">Impulsive</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Impulsive</td><td class="py-2.5 px-3 font-mono">100%</td></tr>
+          <tr class="border-b border-brand-border/50"><td class="py-2.5 px-3 font-semibold">Q36</td><td class="py-2.5 px-3 text-brand-textMuted">Hyperfocus — long, engaged, on-topic (Barkley BDEFS)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"Volcanoes form at tectonic plate boundaries…"</td><td class="py-2.5 px-3">Focused</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Focused</td><td class="py-2.5 px-3 font-mono">98%</td></tr>
+          <tr><td class="py-2.5 px-3 font-semibold">Q37</td><td class="py-2.5 px-3 text-brand-textMuted">Quick escalation to frustration (Barkley BDEFS)</td><td class="py-2.5 px-3 text-brand-textMuted italic">"I don't want to do this anymore, this is stupid…"</td><td class="py-2.5 px-3">Distracted</td><td class="py-2.5 px-3 font-mono text-brand-accentGreenDark">✓ Distracted</td><td class="py-2.5 px-3 font-mono">52%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="flex flex-wrap items-center gap-4 pt-1">
+      <span class="bg-brand-accentGreen text-brand-accentGreenDark text-xs font-bold px-3 py-1.5 rounded-full border border-[#cbdcb5]">10 / 10 match the expected label</span>
+      <span class="text-[11px] text-brand-textMuted">Final BAS after all ten turns: <span class="font-mono font-semibold">45.4</span>, starting from 54.8</span>
+    </div>
+    <p class="text-[11px] text-brand-textMuted leading-relaxed">
+      Two of these ten cases <em>failed</em> on the first run and drove real fixes — Q4 and Q17/Q10
+      originally misclassified as Focused with a positive reward (the worst failure mode: raises BAS
+      and withholds the intervention), which is what led to the
+      <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">repetition_score</span> /
+      <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">completeness_score</span>
+      signals, and Q16 exposed the latency-vs-question-complexity gap that led to
+      <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">prematurity_score</span>
+      — the table above is the result <em>after</em> those fixes, not the original run. Full detail,
+      per-turn interventions, and the reproduce command are in
+      <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">docs/questionnaire_validation.md</span>
+      and <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">docs/model_limitations.md</span>
+      in that repo; the same ten cases are regression-tested in
+      <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">backend/tests/test_questionnaire_constructs.py</span>.
+    </p>
+    <div class="bg-[#eef4fb] border border-[#c7d9f5] rounded-xl p-4">
+      <p class="text-[11px] text-[#1e3a8a] leading-relaxed">
+        <strong>Not a validation study against the questionnaire itself.</strong> The classifier
+        takes one classroom turn (prompt + response + latency), not a 50-item self-report, and a
+        single turn can't establish onset, cross-setting presence, or impairment — what an actual
+        clinical assessment measures. These cases were hand-constructed to <em>embody</em> one
+        construct each, specifically so a gap between what the construct implies and what the
+        pipeline's behavioural signals can see from text alone would show up as a mismatch.
+      </p>
+    </div>
+  </section>
+
   <!-- CASE TABLE -->
   <section class="bg-white border border-brand-border rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
     <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted border-b border-brand-border pb-3">
