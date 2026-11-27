@@ -251,6 +251,20 @@ See `docs/TESTING.md` for full coverage details and current runtimes.
 - `docs/TESTING.md` — test philosophy and coverage
 - `docs/DESIGN_DECISIONS.md` — engineering decisions and alternatives considered
 
+## Continuation: BAS II (Clinical Stress-Testing)
+
+This simulator and the offline-RL comparison above were the Minor Project
+(Semester 6) deliverable. The follow-on project,
+[**ADHD-behavioral-attention-score**](https://github.com/saminadamn/ADHD-behavioral-attention-score),
+takes the separate, *live* FastAPI + Next.js classifier (not this repo's
+synthetic simulator) and clinically stress-tests it against constructs drawn
+from a standard ADHD assessment instrument. That work found and fixed three
+failure modes — a classifier blind spot to repetitive/incomplete responses,
+no sense of response latency relative to question complexity, and a reward
+model that weighted low-confidence classifications the same as high-confidence
+ones — each verified with a regression test (48 tests total) and documented in
+that repo's `docs/model_limitations.md` and `docs/questionnaire_validation.md`.
+
 ## Roadmap
 
 - Public dataset release (CSV/JSONL/Parquet + manifest)
