@@ -142,6 +142,102 @@ body{background:#f8faf7;font-family:'Plus Jakarta Sans',sans-serif;color:#1c1f1a
     </div>
   </section>
 
+  <!-- ABLATION STUDY -->
+  <section class="bg-white border border-brand-border rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
+    <div>
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-textMuted border-b border-brand-border pb-3 mb-1">
+        Ablation study — what each part of the engine is actually worth
+      </h3>
+      <p class="text-[11px] text-brand-textMuted leading-relaxed pt-2">
+        Freshly re-run against the current (post-fix) engine using
+        <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">AblationRunner</span>
+        (Module 13): one baseline run, then one run per row with exactly that
+        piece zero-weighted and everything else held fixed —
+        30 students × 3 sessions, seed 42, 9,102 records.
+      </p>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="border-b border-brand-border text-brand-textMuted">
+            <th class="py-2.5 px-3">Ablation</th>
+            <th class="py-2.5 px-3">What's zero-weighted</th>
+            <th class="py-2.5 px-3 font-mono">Metric</th>
+            <th class="py-2.5 px-3 font-mono">Baseline</th>
+            <th class="py-2.5 px-3 font-mono">Ablated</th>
+            <th class="py-2.5 px-3">Reading</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">learning_response features</td>
+            <td class="py-3 px-3 text-brand-textMuted">correctness, semantic_similarity, coherence, lexical_diversity, confidence</td>
+            <td class="py-3 px-3 font-mono">BAS mean</td>
+            <td class="py-3 px-3 font-mono">0.7436</td>
+            <td class="py-3 px-3 font-mono">0.7350</td>
+            <td class="py-3 px-3 text-brand-textMuted">−0.0086 — these carry real weight; removing them lowers the score</td>
+          </tr>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">behaviour features</td>
+            <td class="py-3 px-3 text-brand-textMuted">hesitation, topic_shift, repetition_ratio, fatigue, abs_normalized_latency, prompt_relative_latency</td>
+            <td class="py-3 px-3 font-mono">BAS mean</td>
+            <td class="py-3 px-3 font-mono">0.7436</td>
+            <td class="py-3 px-3 font-mono">0.7507</td>
+            <td class="py-3 px-3 text-brand-textMuted">+0.0071 — these are negative-polarity penalties; removing them raises the score, as expected</td>
+          </tr>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">temporal smoothing</td>
+            <td class="py-3 px-3 text-brand-textMuted">EMA smoothing → IDENTITY (raw score, unsmoothed)</td>
+            <td class="py-3 px-3 font-mono">BAS mean</td>
+            <td class="py-3 px-3 font-mono">0.7436</td>
+            <td class="py-3 px-3 font-mono">0.7365</td>
+            <td class="py-3 px-3 text-brand-textMuted">−0.0072 — smoothing measurably changes the aggregate, not just per-interaction noise</td>
+          </tr>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">confidence weighting</td>
+            <td class="py-3 px-3 text-brand-textMuted">confidence_variance_weight, confidence_classifier_weight → 0</td>
+            <td class="py-3 px-3 font-mono">BAS mean</td>
+            <td class="py-3 px-3 font-mono">0.7436</td>
+            <td class="py-3 px-3 font-mono">0.7436</td>
+            <td class="py-3 px-3 text-brand-textMuted">no change — by design: <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">classifier_confidence</span> is zero-weight unless a trained predictor is injected</td>
+          </tr>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">reward: performance</td>
+            <td class="py-3 px-3 text-brand-textMuted">correctness/accuracy-derived reward signals</td>
+            <td class="py-3 px-3 font-mono">avg reward</td>
+            <td class="py-3 px-3 font-mono">−0.0039</td>
+            <td class="py-3 px-3 font-mono">−0.0060</td>
+            <td class="py-3 px-3 text-brand-textMuted">−0.0021 — the largest single reward-category effect measured</td>
+          </tr>
+          <tr class="border-b border-brand-border/50">
+            <td class="py-3 px-3 font-semibold">reward: cost</td>
+            <td class="py-3 px-3 text-brand-textMuted">intervention-cost penalty</td>
+            <td class="py-3 px-3 font-mono">avg reward</td>
+            <td class="py-3 px-3 font-mono">−0.0039</td>
+            <td class="py-3 px-3 font-mono">−0.0016</td>
+            <td class="py-3 px-3 text-brand-textMuted">+0.0023 — removing a penalty raises average reward, as expected</td>
+          </tr>
+          <tr>
+            <td class="py-3 px-3 font-semibold">intervention cooldown</td>
+            <td class="py-3 px-3 text-brand-textMuted">cooldown spacing + duplicate-prevention window</td>
+            <td class="py-3 px-3 font-mono">interventions executed</td>
+            <td class="py-3 px-3 font-mono">1,217</td>
+            <td class="py-3 px-3 font-mono">1,435</td>
+            <td class="py-3 px-3 text-brand-textMuted">+218 (+17.9%) — cooldown is doing real throttling work, not a no-op safeguard</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-[11px] text-brand-textMuted leading-relaxed">
+      The point of an ablation table is as much about what <em>doesn't</em> move as what does —
+      the confidence-weighting row is correctly a no-op here because that signal is opt-in and off by
+      default, not a bug in the ablation itself. Full category/policy ablation (reward categories,
+      intervention policies) and the reward-weight and need-threshold sensitivity sweeps are in
+      <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">docs/APPENDIX_ANALYSIS.md</span>,
+      reproducible via <span class="font-mono bg-brand-bg px-1 py-0.5 rounded border border-brand-border">run_appendix_analysis.py</span>.
+    </p>
+  </section>
+
   <!-- DISCLOSURE -->
   <section class="bg-brand-amberBg border border-brand-amberBorder rounded-2xl p-5 space-y-2">
     <div class="flex items-center gap-2 text-brand-amber">
